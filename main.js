@@ -12,6 +12,11 @@ async function init() {
     aspect =  canvas.width/canvas.height;
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
+
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+    gl.frontFace(gl.CCW);
 
     const vertexSource = await loadShaderSource("shaders/vertex.glsl");
     const fragmentSource = await loadShaderSource("shaders/fragment.glsl");
@@ -39,7 +44,7 @@ init().then(() => {
     MLoc = gl.getUniformLocation(shaderProgram, "M");
 
     camera = new Camera(45, aspect, 0.01, 50);
-    camera.position = vec3(0,5,30);
+    camera.position = vec3(0,0,30);
 
     P = camera.getProjectionMatrix();
     gl.uniformMatrix4fv(PLoc, false, flatten(P));

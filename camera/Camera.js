@@ -7,7 +7,9 @@ class Camera {
   }
 
   getViewMatrix() { return lookAt(this.position, this.target, this.up); }
-  getProjectionMatrix() { return perspective(this.fov, this.aspect, this.near, this.far); }
+  getProjectionMatrix() {
+     return perspective(this.fov, this.aspect, this.near, this.far);
+    }
   // add methods: moveForward, moveRight, rotateYawPitch, updateAspect(newAspect) etc.
 
   updateAspect(newAspect) {

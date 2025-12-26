@@ -589,33 +589,23 @@ function scale( )
 //  ModelView Matrix Generators
 //
 
-function lookAt( eye, at, up )
+function lookAt(eye, at, up)
 {
-    if ( eye.type != 'vec3') {
-        throw "lookAt(): first parameter [eye] must be an a vec3";
-    }
+    if (equal(eye, at)) return mat4();
 
-    if ( at.type != 'vec3') {
-        throw "lookAt(): first parameter [at] must be an a vec3";
-    }
+    // Forward (kamera -Z yönüne bakar)
+    var f = normalize(subtract(eye, at));
 
-    if (up.type != 'vec3') {
-        throw "lookAt(): first parameter [up] must be an a vec3";
-    }
+    // Right
+    var s = normalize(cross(up, f));
 
-    if ( equal(eye, at) ) {
-        return mat4();
-    }
-
-    var v = normalize( subtract(at, eye) );  // view direction vector
-    var n = normalize( cross(v, up) ); // perpendicular vector
-    var u = normalize( cross(n, v) );        // "new" up vector
-    v = negate( v );
+    // True up
+    var u = cross(f, s);
 
     var result = mat4(
-        n[0], n[1], n[2], -dot(n, eye),
-        u[0], u[1], u[2], -dot(u, eye),
-        v[0], v[1], v[2], -dot(v, eye),
+        s[0], u[0], f[0], -dot(s, eye),
+        s[1], u[1], f[1], -dot(u, eye),
+        s[2], u[2], f[2], -dot(f, eye),
         0.0,  0.0,  0.0,  1.0
     );
 
