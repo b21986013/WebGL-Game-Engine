@@ -14,9 +14,9 @@ async function init() {
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
 
-    gl.enable(gl.CULL_FACE);
-    gl.cullFace(gl.BACK);
-    gl.frontFace(gl.CCW);
+    // gl.enable(gl.CULL_FACE);
+    // gl.cullFace(gl.BACK);
+    // gl.frontFace(gl.CCW);
 
     const vertexSource = await loadShaderSource("shaders/vertex.glsl");
     const fragmentSource = await loadShaderSource("shaders/fragment.glsl");
@@ -28,8 +28,10 @@ async function init() {
 function render(){
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    scene.gameObjects[0].transform.rotation[1] += 0.1; // rotate cube
-    scene.gameObjects[1].transform.rotation[1] -= 0.1; // rotate cube2
+    const normalMatrixLoc = gl.getUniformLocation(shaderProgram, "normalMatrix");
+    gl.uniformMatrix3fv(normalMatrixLoc, false, flatten(normalMatrix(scene.gameObjects[0].transform.getModelMatrix())));
+
+    scene.gameObjects[0].transform.rotation[1] += 0.1;  
 
     scene.draw(gl, shaderProgram);
 
@@ -44,19 +46,23 @@ init().then(() => {
     MLoc = gl.getUniformLocation(shaderProgram, "M");
 
     camera = new Camera(45, aspect, 0.01, 50);
-    camera.position = vec3(0,0,30);
+    camera.position = vec3(0,5,10);
 
     P = camera.getProjectionMatrix();
     gl.uniformMatrix4fv(PLoc, false, flatten(P));
 
     V = camera.getViewMatrix();
     gl.uniformMatrix4fv(VLoc, false, flatten(V));
-
+    
+    const shininessLoc = gl.getUniformLocation(shaderProgram, "shininess");
+    const specularStrengthLoc = gl.getUniformLocation(shaderProgram, "specularStrength");
     const lightPosLoc = gl.getUniformLocation(shaderProgram, "lightPos");
     const viewPosLoc  = gl.getUniformLocation(shaderProgram, "viewPos");
 
-    gl.uniform3fv(lightPosLoc, flatten(vec3(0, 10, 0)));
+    gl.uniform3fv(lightPosLoc, flatten(vec3(0, 0, 5)));
     gl.uniform3fv(viewPosLoc, flatten(camera.position));
+
+    
 
     window.addEventListener('resize', () => 
     {
@@ -75,16 +81,17 @@ init().then(() => {
         normal: gl.getAttribLocation(shaderProgram, "vNormal")
     };
 
+    scene = new Scene();
+
     let cubeGeometry = createColoredCube();
     const cube = new GameObject(new Mesh(gl, cubeGeometry.positions,cubeGeometry.colors, attribLocations, cubeGeometry.normals));
-    const cube2 = new GameObject(new Mesh(gl, cubeGeometry.positions,cubeGeometry.colors, attribLocations, cubeGeometry.normals));
 
-    scene = new Scene();
     scene.add(cube);
-    scene.add(cube2);
+    scene.gameObjects[0].transform.position = vec3(0,0,0);
 
-    scene.gameObjects[0].transform.position = vec3(-3,0,0);
-    scene.gameObjects[1].transform.position = vec3(3,0,0);
+   
+    gl.uniform1f(shininessLoc, 32.0);        
+    gl.uniform1f(specularStrengthLoc, 0.5);  
 
     render();
 
