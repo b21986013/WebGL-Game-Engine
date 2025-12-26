@@ -24,23 +24,34 @@ function createColoredCube() {
 
     const positions = [];
     const colors = [];
+    const normals = [];
 
-    function quad(a, b, c, d, color) {
-        positions.push(vertices[a]); colors.push(color);
-        positions.push(vertices[b]); colors.push(color);
-        positions.push(vertices[c]); colors.push(color);
+    function quad(a, b, c, d, color, normal) {
+    positions.push(vertices[a]); colors.push(color); normals.push(normal);
+    positions.push(vertices[b]); colors.push(color); normals.push(normal);
+    positions.push(vertices[c]); colors.push(color); normals.push(normal);
 
-        positions.push(vertices[a]); colors.push(color);
-        positions.push(vertices[c]); colors.push(color);
-        positions.push(vertices[d]); colors.push(color);
-    }
+    positions.push(vertices[a]); colors.push(color); normals.push(normal);
+    positions.push(vertices[c]); colors.push(color); normals.push(normal);
+    positions.push(vertices[d]); colors.push(color); normals.push(normal);
+}
 
-    quad(1, 0, 3, 2, faceColors[0]); // front
-    quad(2, 3, 7, 6, faceColors[1]); // right
-    quad(3, 0, 4, 7, faceColors[2]); // back
-    quad(6, 5, 1, 2, faceColors[3]); // left
-    quad(4, 5, 6, 7, faceColors[4]); // top
-    quad(5, 4, 0, 1, faceColors[5]); // bottom
 
-    return { positions, colors };
+quad(0, 1, 2, 3, faceColors[0], vec3(0, 0, 1));
+quad(3, 2, 6, 7, faceColors[1], vec3(1, 0, 0));
+
+quad(7, 6, 5, 4, faceColors[2], vec3(0, 0, -1));
+
+quad(4, 5, 1, 0, faceColors[3], vec3(-1, 0, 0));
+
+quad(1, 5, 6, 2, faceColors[4], vec3(0, 1, 0));
+
+quad(4, 0, 3, 7, faceColors[5], vec3(0, -1, 0));
+
+
+    return {
+        positions,
+        colors,
+        normals
+    };
 }

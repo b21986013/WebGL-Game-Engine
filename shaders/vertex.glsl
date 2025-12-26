@@ -1,15 +1,24 @@
 #version 300 es
 
-in  vec4 vPos;
-in  vec4 vCol;
-out vec4 fCol;
+in vec4 vPos;
+in vec4 vCol;
+in vec3 vNormal;
 
+out vec4 fCol;
+out vec3 fNormal;
+out vec3 fPos;
+ 
+uniform mat4 M;
 uniform mat4 V;
 uniform mat4 P;
-uniform mat4 M;
 
-void main()
-{
-    gl_Position = P*V*M*vPos;
+void main() {
+    vec4 worldPos = M * vPos;
+    fPos = worldPos.xyz;
+ 
+    fNormal = mat3(M) * vNormal; 
+
     fCol = vCol;
+
+    gl_Position = P * V * worldPos;
 }
