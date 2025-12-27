@@ -11,12 +11,13 @@ export class Scene {
 
     update() {
         for (const obj of this.gameObjects) {
+            // Future update logic can be added here
         }
     }
 
-    draw(gl, program) {
-        const modelLoc  = gl.getUniformLocation(program, "M");
-        const normalLoc = gl.getUniformLocation(program, "normalMatrix");
+    draw(gl, shaderProgram) {
+        const modelLoc  = gl.getUniformLocation(shaderProgram, "M");
+        const normalLoc = gl.getUniformLocation(shaderProgram, "normalMatrix");
 
         for (const obj of this.gameObjects) {
 
@@ -25,6 +26,10 @@ export class Scene {
 
             gl.uniformMatrix4fv(modelLoc, false, flatten(modelMatrix));
             gl.uniformMatrix3fv(normalLoc, false, flatten(nM));
+
+            if (obj.material) {
+                obj.material.apply(gl, shaderProgram);
+            }
 
             obj.mesh.draw();
         }

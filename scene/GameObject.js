@@ -3,9 +3,10 @@ import { flatten } from '../mvNew.js';
 
 
 export class GameObject {
-    constructor(mesh) {
+    constructor(mesh, material = null) {
         this.mesh = mesh;
         this.transform = new Transform();
+        this.material = material;
     }
 
     draw(gl, shaderProgram) {
