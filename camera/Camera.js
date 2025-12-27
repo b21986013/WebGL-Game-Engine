@@ -1,4 +1,6 @@
-class Camera {
+import { lookAt, perspective, vec3 } from '../mvNew.js';
+
+export class Camera {
   constructor(fov = 45, aspect = 1, near = 0.1, far = 100) {
     this.position = vec3(0,0,0);
     this.target = vec3(0,0,0);

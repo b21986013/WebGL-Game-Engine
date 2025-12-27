@@ -1,4 +1,4 @@
-async function loadShaderSource(url) {
+export async function loadShaderSource(url) {
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error("Shader yüklenemedi: " + url);
@@ -20,7 +20,7 @@ function compileShader(gl, type, source) {
     return shader;
 }
 
-function createProgram(gl, vsSource, fsSource) {
+export function createProgram(gl, vsSource, fsSource) {
     const vs = compileShader(gl, gl.VERTEX_SHADER, vsSource);
     const fs = compileShader(gl, gl.FRAGMENT_SHADER, fsSource);
 

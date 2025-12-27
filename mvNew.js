@@ -449,7 +449,7 @@ function mult( u, v )
   }
   else if (u.type=='mat4'&&v.type=='mat4'){
     result = mat4();
-    for(i=0;i<4;i++) for(j=0;j<4;j++) {
+    for(i=0;i<4;i++) for(var j=0;j<4;j++) {
       result[i][j] = 0.0;
       for(var k=0;k<4;k++) result[i][j]+=u[i][k]*v[k][j];
     }
@@ -475,6 +475,7 @@ function mult( u, v )
 
 function translate( x, y, z )
 {
+    let result;
     if(arguments.length!=2 && arguments.length != 3) {
       throw "translate(): not a mat3 or mat4";
     }
@@ -1175,4 +1176,12 @@ function normalMatrix(m, flag)
     for(var i=0;i<3;i++) for(var j=0; j<3; j++) b[i][j] = a[i][j];
 
     return b;
+}
+
+export{
+  flatten, lookAt, perspective, ortho, translate, rotate, scale,
+  mult, mix, add, subtract,
+  dot, cross, length, normalize, negate, normalMatrix, vec3, vec4,
+  mat2, mat3, mat4, patch,
+  inverse, det, printm, equal, rotateX, rotateY, rotateZ
 }

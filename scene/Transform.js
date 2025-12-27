@@ -1,4 +1,6 @@
-class Transform {
+import { mat4, translate, rotateX, rotateY, rotateZ, scale, mult, vec3 } from '../mvNew.js';
+
+export class Transform {
     constructor() {
         this.position = vec3(0, 0, 0);
         this.rotation = vec3(0, 0, 0); // radians
