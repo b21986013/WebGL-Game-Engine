@@ -11,9 +11,10 @@ import { Camera } from "./camera/Camera.js";
 import { GameObject } from "./scene/GameObject.js";
 import { Scene } from "./scene/Scene.js";
 import { loadShaderSource, createProgram } from "./initshaders.js";
+import { loadOBJ } from "./loaders/OBJLoader.js";
 
 // Global variables
-let gl, canvas, shaderProgram, scene, camera, aspect;  
+let gl, canvas, shaderProgram, scene, camera, aspect, objGeo;  
 
 async function init() {
     canvas = document.getElementById("gl-canvas");
@@ -31,6 +32,7 @@ async function init() {
     // gl.cullFace(gl.BACK);
     // gl.frontFace(gl.CCW);
 
+
     const vertexSource = await loadShaderSource("shaders/vertex.glsl");
     const fragmentSource = await loadShaderSource("shaders/fragment.glsl");
     
@@ -38,14 +40,14 @@ async function init() {
 }
 
 
-init().then(() => {
+init().then(async() => {
     gl.useProgram(shaderProgram);
  
     const VLoc = gl.getUniformLocation(shaderProgram, "V");
     const PLoc = gl.getUniformLocation(shaderProgram, "P");
 
     camera = new Camera(45, aspect, 0.01, 50);
-    camera.position = vec3(0,3,10);
+    camera.position = vec3(0,3,20);
 
     let P = camera.getProjectionMatrix();
     gl.uniformMatrix4fv(PLoc, false, flatten(P));
@@ -73,10 +75,14 @@ init().then(() => {
     scene = new Scene();
 
     const purpleMat = new Material({
-    color: vec3(1, 1, 0),
+    color: vec3(1, 0, 1),
     shininess: 32,
     specularStrength: 0.5
 });
+
+    objGeo = await loadOBJ("models/teapot.obj");
+    const teapot = new GameObject(new Mesh(gl,objGeo,shaderProgram) , purpleMat);
+    teapot.transform.position = vec3(5, 0, 0);
 
     const cubeGeo =  createCube(1.0);
     const cube = new GameObject(new Mesh(gl, cubeGeo, shaderProgram), purpleMat);
@@ -97,6 +103,7 @@ init().then(() => {
     scene.add(sphere);
     scene.add(cylinder);
     scene.add(prism);
+    scene.add(teapot);
 
     render();
 
@@ -106,10 +113,10 @@ init().then(() => {
 function render(){
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    scene.gameObjects[0].transform.rotation[1] -= 0.1; 
-    scene.gameObjects[3].transform.rotation[1] += 0.2;
-
     scene.draw(gl, shaderProgram);
+    
+    console.log(scene.gameObjects.length);
+    scene.gameObjects[4].transform.rotation[1] += 0.1; // obj rotasyon
 
     requestAnimationFrame(render);
 }
