@@ -4,6 +4,7 @@ import { Material } from "./core/Material.js";
 import { createSphere } from "./geometry/Sphere.js";
 import { createCube } from "./geometry/Cube.js";
 import { createCylinder } from "./geometry/Cylinder.js";
+import { createTriangularPrism } from "./geometry/Prism.js";
 import { vec3,  flatten } from "./mvNew.js";
 import { Mesh } from "./core/Mesh.js";
 import { Camera } from "./camera/Camera.js";
@@ -44,7 +45,7 @@ init().then(() => {
     const PLoc = gl.getUniformLocation(shaderProgram, "P");
 
     camera = new Camera(45, aspect, 0.01, 50);
-    camera.position = vec3(0,10,10);
+    camera.position = vec3(0,3,10);
 
     let P = camera.getProjectionMatrix();
     gl.uniformMatrix4fv(PLoc, false, flatten(P));
@@ -55,8 +56,7 @@ init().then(() => {
     const lightPosLoc = gl.getUniformLocation(shaderProgram, "lightPos");
     const viewPosLoc  = gl.getUniformLocation(shaderProgram, "viewPos");
 
-
-    gl.uniform3fv(lightPosLoc, flatten(vec3(0, -3, 5)));
+    gl.uniform3fv(lightPosLoc, flatten(vec3(-3, 0, 5)));
     gl.uniform3fv(viewPosLoc, flatten(camera.position));
 
     window.addEventListener('resize', () => 
@@ -89,9 +89,14 @@ init().then(() => {
     const cylinder = new GameObject(new Mesh(gl, cylinderGeo, shaderProgram, purpleMat));
     cylinder.transform.position = vec3(-2, 0, 0);
 
+    const prismGeo = createTriangularPrism(1.0, 2.0);
+    const prism = new GameObject(new Mesh(gl, prismGeo, shaderProgram, purpleMat));
+    prism.transform.position = vec3(-4, 0, 0);
+
     scene.add(cube);
     scene.add(sphere);
     scene.add(cylinder);
+    scene.add(prism);
 
     render();
 
@@ -102,6 +107,7 @@ function render(){
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     scene.gameObjects[0].transform.rotation[1] -= 0.1; 
+    scene.gameObjects[3].transform.rotation[1] += 0.2;
 
     scene.draw(gl, shaderProgram);
 
