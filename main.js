@@ -3,6 +3,7 @@
 import { Material } from "./core/Material.js";
 import { createSphere } from "./geometry/Sphere.js";
 import { createCube } from "./geometry/Cube.js";
+import { createCylinder } from "./geometry/Cylinder.js";
 import { vec3,  flatten } from "./mvNew.js";
 import { Mesh } from "./core/Mesh.js";
 import { Camera } from "./camera/Camera.js";
@@ -11,10 +12,10 @@ import { Scene } from "./scene/Scene.js";
 import { loadShaderSource, createProgram } from "./initshaders.js";
 
 // Global variables
-let gl, shaderProgram, scene, camera, aspect;  
+let gl, canvas, shaderProgram, scene, camera, aspect;  
 
 async function init() {
-    const canvas = document.getElementById("gl-canvas");
+    canvas = document.getElementById("gl-canvas");
 
     gl = canvas.getContext('webgl2');
     if (!gl) alert("WebGL 2.0 isn't available" );
@@ -43,12 +44,12 @@ init().then(() => {
     const PLoc = gl.getUniformLocation(shaderProgram, "P");
 
     camera = new Camera(45, aspect, 0.01, 50);
-    camera.position = vec3(0,5,10);
+    camera.position = vec3(0,10,10);
 
-    const P = camera.getProjectionMatrix();
+    let P = camera.getProjectionMatrix();
     gl.uniformMatrix4fv(PLoc, false, flatten(P));
 
-    const V = camera.getViewMatrix();
+    let V = camera.getViewMatrix();
     gl.uniformMatrix4fv(VLoc, false, flatten(V));
     
     const lightPosLoc = gl.getUniformLocation(shaderProgram, "lightPos");
@@ -72,7 +73,7 @@ init().then(() => {
     scene = new Scene();
 
     const purpleMat = new Material({
-    color: vec3(1, 0, 1),
+    color: vec3(1, 1, 0),
     shininess: 32,
     specularStrength: 0.5
 });
@@ -84,8 +85,13 @@ init().then(() => {
     const sphere = new GameObject(new Mesh(gl, sphereGeo, shaderProgram, purpleMat));
     sphere.transform.position = vec3(2, 0, 0);
 
+    const cylinderGeo = createCylinder(0.5, 1.5, 32);
+    const cylinder = new GameObject(new Mesh(gl, cylinderGeo, shaderProgram, purpleMat));
+    cylinder.transform.position = vec3(-2, 0, 0);
+
     scene.add(cube);
     scene.add(sphere);
+    scene.add(cylinder);
 
     render();
 
@@ -95,7 +101,7 @@ init().then(() => {
 function render(){
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    scene.gameObjects[0].transform.rotation[1] += 0.1; 
+    scene.gameObjects[0].transform.rotation[1] -= 0.1; 
 
     scene.draw(gl, shaderProgram);
 
