@@ -7,6 +7,7 @@ export function createCylinder(
 ) {
     const positions = [];
     const normals = [];
+    const uvs = [];
     const indices = [];
 
     const halfH = height / 2;
@@ -22,14 +23,17 @@ export function createCylinder(
         const z = Math.sin(theta);
 
         const normal = normalize(vec3(x, 0, z));
+        const u = i / segments;
 
         // bottom
         positions.push(vec4(radius * x, -halfH, radius * z, 1.0));
         normals.push(normal);
+        uvs.push([u, 0]);
 
         // top
         positions.push(vec4(radius * x, halfH, radius * z, 1.0));
         normals.push(normal);
+        uvs.push([u, 1]);
     }
 
     for (let i = 0; i < segments; i++) {
@@ -48,6 +52,7 @@ export function createCylinder(
     const topCenterIndex = positions.length;
     positions.push(vec4(0, halfH, 0, 1));
     normals.push(vec3(0, 1, 0));
+    uvs.push([0.5, 0.5]);
 
     const topStart = positions.length;
 
@@ -58,6 +63,11 @@ export function createCylinder(
 
         positions.push(vec4(radius * x, halfH, radius * z, 1));
         normals.push(vec3(0, 1, 0));
+
+        uvs.push([
+            0.5 + 0.5 * (x),
+            0.5 + 0.5 * (z)
+        ]);
     }
 
     for (let i = 0; i < segments; i++) {
@@ -74,6 +84,7 @@ export function createCylinder(
     const bottomCenterIndex = positions.length;
     positions.push(vec4(0, -halfH, 0, 1));
     normals.push(vec3(0, -1, 0));
+    uvs.push([0.5, 0.5]);
 
     const bottomStart = positions.length;
 
@@ -84,6 +95,11 @@ export function createCylinder(
 
         positions.push(vec4(radius * x, -halfH, radius * z, 1));
         normals.push(vec3(0, -1, 0));
+
+        uvs.push([
+            0.5 + 0.5 * (x),
+            0.5 + 0.5 * (z)
+        ]);
     }
 
     for (let i = 0; i < segments; i++) {
@@ -97,6 +113,7 @@ export function createCylinder(
     return {
         positions,
         normals,
+        uvs,
         indices
     };
 }

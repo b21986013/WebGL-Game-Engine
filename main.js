@@ -59,7 +59,7 @@ init().then(async() => {
     const lightPosLoc = gl.getUniformLocation(shaderProgram, "lightPos");
     const viewPosLoc  = gl.getUniformLocation(shaderProgram, "viewPos");
 
-    gl.uniform3fv(lightPosLoc, flatten(vec3(-3, 0, 5)));
+    gl.uniform3fv(lightPosLoc, flatten(vec3(-5, 0, 5)));
     gl.uniform3fv(viewPosLoc, flatten(camera.position));
 
 
@@ -75,53 +75,57 @@ init().then(async() => {
         gl.uniformMatrix4fv(PLoc, false, flatten(P));
     });
 
-    const useTextureLoc = gl.getUniformLocation(shaderProgram, "useTexture");
-    gl.uniform1i(useTextureLoc, 1);
-
-    const cubeTexture = new Texture(gl, "./textures/checkers.png");
-    cubeTexture.bind(0);
-
-    const texLoc = gl.getUniformLocation(shaderProgram, "albedoMap");
-    gl.uniform1i(texLoc, 0);
+    demoSceneSetup().then(()=>{
+        render();
+    })
  
+});
 
+
+async function demoSceneSetup(){
+    // Create scene objects here and add to scene
     scene = new Scene();
+
+    const checkerTexturedMat = new Material({
+        color: vec3(1, 1, 1),
+        shininess: 64,
+        specularStrength: 1.0,
+        texture: new Texture(gl, "./textures/checkers.png")
+    });
 
     const purpleMat = new Material({
         color: vec3(1, 0, 1),
         shininess: 32,
         specularStrength: 0.5,
-        texture: cubeTexture
     });
 
-    objGeo = await loadOBJ("models/teapot.obj");
-    const teapot = new GameObject(new Mesh(gl,objGeo,shaderProgram) , purpleMat);
-    teapot.transform.position = vec3(0, 0, 0);
+    objGeo = await loadOBJ("models/monkey_head.obj");
+    const monkeyHead = new GameObject(new Mesh(gl,objGeo,shaderProgram) , purpleMat);
+    monkeyHead.transform.position = vec3(0, 0, 0);
+    monkeyHead.transform.scale = vec3(3, 3, 3);
 
-    const cubeGeo =  createCube(2.0);
-    const cube = new GameObject(new Mesh(gl, cubeGeo, shaderProgram), purpleMat);
+
+    const cylinderGeo = createCylinder(0.5, 3.0, 32);
+    const cylinder = new GameObject(new Mesh(gl, cylinderGeo, shaderProgram), checkerTexturedMat);
+    cylinder.transform.position = vec3(-4, 0, 0);
+
+    const cubeGeo =  createCube(4.0);
+    const cube = new GameObject(new Mesh(gl, cubeGeo, shaderProgram), checkerTexturedMat);
  
-    const sphereGeo = createSphere(1.0, 32, 32);
-    const sphere = new GameObject(new Mesh(gl, sphereGeo, shaderProgram, purpleMat));
-    sphere.transform.position = vec3(2, 0, 0);
-
-    const cylinderGeo = createCylinder(0.5, 1.5, 32);
-    const cylinder = new GameObject(new Mesh(gl, cylinderGeo, shaderProgram, purpleMat));
-    cylinder.transform.position = vec3(-2, 0, 0);
+    const sphereGeo = createSphere(5.0, 16, 16);
+    const sphere = new GameObject(new Mesh(gl, sphereGeo, shaderProgram), checkerTexturedMat);
+    sphere.transform.position = vec3(5, 0, 0);
 
     const prismGeo = createTriangularPrism(1.0, 2.0);
-    const prism = new GameObject(new Mesh(gl, prismGeo, shaderProgram, purpleMat));
+    const prism = new GameObject(new Mesh(gl, prismGeo, shaderProgram), purpleMat);
     prism.transform.position = vec3(-4, 0, 0);
 
-    scene.add(cube);
-    // scene.add(sphere);
+    // scene.add(cube);
+    scene.add(sphere);
     // scene.add(cylinder);
     // scene.add(prism);
-    // scene.add(teapot);
-
-    render();
-
-});
+    // scene.add(monkeyHead);
+}
 
 
 function render(){
@@ -129,7 +133,9 @@ function render(){
 
     scene.draw(gl, shaderProgram);
     
+    // scene.gameObjects[2].transform.rotation[1] += 0.1; // obj rotasyon
     scene.gameObjects[0].transform.rotation[1] += 0.1; // obj rotasyon
+
 
     requestAnimationFrame(render);
 }

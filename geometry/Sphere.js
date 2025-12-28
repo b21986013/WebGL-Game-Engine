@@ -1,9 +1,10 @@
-import { vec3, vec4, normalize } from '../mvNew.js';
+import { vec3, vec4, vec2, normalize } from '../mvNew.js';
 
 export function createSphere(radius = 1.0, latBands = 24, lonBands = 24) {
 
     const positions = [];
     const normals   = [];
+    const uvs       = [];
     const indices   = [];
 
     // ===== Vertex generation =====
@@ -31,6 +32,11 @@ export function createSphere(radius = 1.0, latBands = 24, lonBands = 24) {
             ));
 
             normals.push(normal);
+
+            // ===== UV mapping =====
+            const u = lon / lonBands;
+            const v = 1.0 - lat / latBands;
+            uvs.push(vec2(u, v));
         }
     }
 
@@ -48,6 +54,7 @@ export function createSphere(radius = 1.0, latBands = 24, lonBands = 24) {
     return {
         positions,
         normals,
+        uvs,
         indices
     };
 }

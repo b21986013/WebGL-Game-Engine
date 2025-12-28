@@ -23,12 +23,11 @@ void main() {
     vec3 V = normalize(viewPos - fPos);
 
     // ===== Ambient and Diffuse =====
-    vec3 baseColor = objectColor;
     vec3 ambient, diffuse;
     float diff = max(dot(N, L), 0.0);
     if (useTexture) 
     {
-        baseColor = texture(albedoMap, fUV).rgb;
+        vec3 baseColor = texture(albedoMap, fUV).rgb;
         ambient = 0.2 * baseColor;
         diffuse = diff * baseColor;
     }
