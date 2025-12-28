@@ -1,5 +1,6 @@
 "use strict";
 
+import { Texture } from "./core/Texture.js";
 import { Material } from "./core/Material.js";
 import { createSphere } from "./geometry/Sphere.js";
 import { createCube } from "./geometry/Cube.js";
@@ -61,6 +62,8 @@ init().then(async() => {
     gl.uniform3fv(lightPosLoc, flatten(vec3(-3, 0, 5)));
     gl.uniform3fv(viewPosLoc, flatten(camera.position));
 
+
+
     window.addEventListener('resize', () => 
     {
         console.log("resize");
@@ -72,19 +75,30 @@ init().then(async() => {
         gl.uniformMatrix4fv(PLoc, false, flatten(P));
     });
 
+    const useTextureLoc = gl.getUniformLocation(shaderProgram, "useTexture");
+    gl.uniform1i(useTextureLoc, 1);
+
+    const cubeTexture = new Texture(gl, "./textures/checkers.png");
+    cubeTexture.bind(0);
+
+    const texLoc = gl.getUniformLocation(shaderProgram, "albedoMap");
+    gl.uniform1i(texLoc, 0);
+ 
+
     scene = new Scene();
 
     const purpleMat = new Material({
-    color: vec3(1, 0, 1),
-    shininess: 32,
-    specularStrength: 0.5
-});
+        color: vec3(1, 0, 1),
+        shininess: 32,
+        specularStrength: 0.5,
+        texture: cubeTexture
+    });
 
     objGeo = await loadOBJ("models/teapot.obj");
     const teapot = new GameObject(new Mesh(gl,objGeo,shaderProgram) , purpleMat);
-    teapot.transform.position = vec3(5, 0, 0);
+    teapot.transform.position = vec3(0, 0, 0);
 
-    const cubeGeo =  createCube(1.0);
+    const cubeGeo =  createCube(2.0);
     const cube = new GameObject(new Mesh(gl, cubeGeo, shaderProgram), purpleMat);
  
     const sphereGeo = createSphere(1.0, 32, 32);
@@ -100,10 +114,10 @@ init().then(async() => {
     prism.transform.position = vec3(-4, 0, 0);
 
     scene.add(cube);
-    scene.add(sphere);
-    scene.add(cylinder);
-    scene.add(prism);
-    scene.add(teapot);
+    // scene.add(sphere);
+    // scene.add(cylinder);
+    // scene.add(prism);
+    // scene.add(teapot);
 
     render();
 
@@ -115,8 +129,7 @@ function render(){
 
     scene.draw(gl, shaderProgram);
     
-    console.log(scene.gameObjects.length);
-    scene.gameObjects[4].transform.rotation[1] += 0.1; // obj rotasyon
+    scene.gameObjects[0].transform.rotation[1] += 0.1; // obj rotasyon
 
     requestAnimationFrame(render);
 }

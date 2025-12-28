@@ -1,4 +1,4 @@
-import { vec4, vec3 } from "../mvNew.js";
+import { vec4, vec3, vec2 } from "../mvNew.js";
 
 export function createCube(size = 1.0) {
 
@@ -6,9 +6,17 @@ export function createCube(size = 1.0) {
 
     const positions = [];
     const normals   = [];
+    const uvs       = [];
     const indices   = [];
 
     let indexOffset = 0;
+
+    const faceUVs = [
+        vec2(0, 0),
+        vec2(1, 0),
+        vec2(1, 1),
+        vec2(0, 1),
+    ];
 
     const faces = [
         // +Z (front)
@@ -76,9 +84,11 @@ export function createCube(size = 1.0) {
     for (const face of faces) {
 
         // 4 vertex
-        for (const v of face.v) {
+        for (let i = 0; i < 4; i++) {
+            const v = face.v[i];
             positions.push(vec4(v[0], v[1], v[2], 1.0));
             normals.push(vec3(face.n[0], face.n[1], face.n[2]));
+            uvs.push(faceUVs[i]);
         }
 
         // 2 triangle (CCW)
@@ -97,6 +107,7 @@ export function createCube(size = 1.0) {
     return {
         positions,
         normals,
+        uvs,
         indices
     };
 }

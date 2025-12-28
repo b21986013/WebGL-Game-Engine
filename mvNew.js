@@ -1181,7 +1181,7 @@ function normalMatrix(m, flag)
 export{
   flatten, lookAt, perspective, ortho, translate, rotate, scale,
   mult, mix, add, subtract,
-  dot, cross, length, normalize, negate, normalMatrix, vec3, vec4,
+  dot, cross, length, normalize, negate, normalMatrix, vec3, vec4,vec2,
   mat2, mat3, mat4, patch,
-  inverse, det, printm, equal, rotateX, rotateY, rotateZ
+  inverse, det, printm, equal, rotateX, rotateY, rotateZ, transpose
 }

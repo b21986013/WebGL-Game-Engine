@@ -1,14 +1,11 @@
 import { flatten } from "../mvNew.js";
 
 export class Material {
-    constructor({
-        color = [1, 1, 1],
-        shininess = 32.0,
-        specularStrength = 0.5
-    } = {}) {
+    constructor({color = [1, 1, 1], shininess = 32.0, specularStrength = 0.5, texture = null} = {}) {
         this.color = color;
         this.shininess = shininess;
         this.specularStrength = specularStrength;
+        this.texture = texture;
     }
 
     apply(gl, program) {
@@ -26,5 +23,13 @@ export class Material {
             gl.getUniformLocation(program, "specularStrength"),
             this.specularStrength
         );
+
+        if (this.texture) {
+            this.texture.bind(0);
+            gl.uniform1i(gl.getUniformLocation(program, "albedoMap"), 0);
+            gl.uniform1i(gl.getUniformLocation(program, "useTexture"), 1);
+        } else {
+            gl.uniform1i(gl.getUniformLocation(program, "useTexture"), 0);
+        }
     }
 }

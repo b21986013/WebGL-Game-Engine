@@ -1,5 +1,8 @@
 #version 300 es
 
+in vec2 vUV;
+out vec2 fUV;
+
 in vec4 vPos;
 in vec3 vNormal;
 
@@ -15,6 +18,8 @@ void main() {
     fPos = worldPos.xyz;
  
     fNormal = normalize(normalMatrix * vNormal);
+
+    fUV = vUV;
 
     gl_Position = P * V * worldPos;
 }

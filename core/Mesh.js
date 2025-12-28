@@ -8,6 +8,8 @@ export class Mesh {
 
         const posLoc = gl.getAttribLocation(shaderProgram, "vPos");
         const normalLoc = gl.getAttribLocation(shaderProgram, "vNormal");
+        const uvLoc = gl.getAttribLocation(shaderProgram, "vUV");
+
         
         // === POSITION ===
         this.vertexCount = geometry.positions.length;
@@ -32,6 +34,20 @@ export class Mesh {
             );
             gl.enableVertexAttribArray(normalLoc);
             gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 0, 0);
+        }
+
+        // === UV ===
+        if (geometry.uvs && uvLoc !== -1) {
+            this.uvBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.uvBuffer);
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Float32Array(flatten(geometry.uvs)),
+                gl.STATIC_DRAW
+            );
+            gl.enableVertexAttribArray(uvLoc);
+            gl.vertexAttribPointer(uvLoc, 2, gl.FLOAT, false, 0, 0);
+            console.log("UV buffer created");
         }
 
         // === COLOR (optional) ===
