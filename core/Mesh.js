@@ -47,7 +47,6 @@ export class Mesh {
             );
             gl.enableVertexAttribArray(uvLoc);
             gl.vertexAttribPointer(uvLoc, 2, gl.FLOAT, false, 0, 0);
-            console.log("UV buffer created");
         }
 
         // === COLOR (optional) ===

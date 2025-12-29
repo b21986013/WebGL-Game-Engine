@@ -3,6 +3,7 @@ import { flatten, normalMatrix } from "../mvNew.js";
 export class Scene {
     constructor() {
         this.gameObjects = [];
+        this.light = null;
     }
 
     add(gameObject) {
@@ -15,7 +16,16 @@ export class Scene {
         }
     }
 
+    setLight(light) {
+        this.light = light;
+    }
+
     draw(gl, shaderProgram) {
+
+        if (this.light) {
+            this.light.apply(gl, shaderProgram);
+        }
+
         const modelLoc  = gl.getUniformLocation(shaderProgram, "M");
         const normalLoc = gl.getUniformLocation(shaderProgram, "normalMatrix");
 

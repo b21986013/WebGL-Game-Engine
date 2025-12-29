@@ -1,5 +1,7 @@
 "use strict";
 
+import { LightGUI } from "./ui/gui.js";
+import { applyLightUniforms } from "./core/Renderer.js";
 import { Texture } from "./core/Texture.js";
 import { Material } from "./core/Material.js";
 import { createSphere } from "./geometry/Sphere.js";
@@ -15,7 +17,7 @@ import { loadShaderSource, createProgram } from "./initshaders.js";
 import { loadOBJ } from "./loaders/OBJLoader.js";
 
 // Global variables
-let gl, canvas, shaderProgram, scene, camera, aspect, objGeo;  
+let gl, canvas, shaderProgram, scene, camera, aspect, objGeo, lightSettings;  
 
 async function init() {
     canvas = document.getElementById("gl-canvas");
@@ -86,6 +88,10 @@ async function demoSceneSetup(){
     // Create scene objects here and add to scene
     scene = new Scene();
 
+    new LightGUI();
+    lightSettings = new LightGUI().state;
+    
+
     const checkerTexturedMat = new Material({
         color: vec3(1, 1, 1),
         shininess: 64,
@@ -112,33 +118,32 @@ async function demoSceneSetup(){
     const cubeGeo =  createCube(4.0);
     const cube = new GameObject(new Mesh(gl, cubeGeo, shaderProgram), checkerTexturedMat);
  
-    const sphereGeo = createSphere(5.0, 16, 16);
+    const sphereGeo = createSphere(3.0, 16, 16);
     const sphere = new GameObject(new Mesh(gl, sphereGeo, shaderProgram), checkerTexturedMat);
-    sphere.transform.position = vec3(5, 0, 0);
+    sphere.transform.position = vec3(0, 0, 0);
 
     const prismGeo = createTriangularPrism(1.0, 2.0);
     const prism = new GameObject(new Mesh(gl, prismGeo, shaderProgram), purpleMat);
     prism.transform.position = vec3(-4, 0, 0);
 
     // scene.add(cube);
-    scene.add(sphere);
+    // scene.add(sphere);
     // scene.add(cylinder);
     // scene.add(prism);
-    // scene.add(monkeyHead);
+    scene.add(monkeyHead);
 }
 
 
 function render(){
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    applyLightUniforms(gl, shaderProgram, lightSettings); // ./core/Renderer.js
+
     scene.draw(gl, shaderProgram);
     
-    // scene.gameObjects[2].transform.rotation[1] += 0.1; // obj rotasyon
-    scene.gameObjects[0].transform.rotation[1] += 0.1; // obj rotasyon
-
+    scene.gameObjects[0].transform.rotation[1] += 0.1; // Rotate first object in scene
 
     requestAnimationFrame(render);
 }
 
 
- 
