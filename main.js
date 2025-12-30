@@ -92,7 +92,7 @@ init().then(async() => {
     PLoc = gl.getUniformLocation(shaderProgram, "P");
 
     camera = new Camera(45, aspect, 0.01, 100);
-    camera.position = vec3(0,10,30);
+    camera.position = vec3(0,3,20);
 
     let P = camera.getProjectionMatrix();
     gl.uniformMatrix4fv(PLoc, false, flatten(P));
