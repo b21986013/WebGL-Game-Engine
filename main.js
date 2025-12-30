@@ -91,8 +91,8 @@ init().then(async() => {
     VLoc = gl.getUniformLocation(shaderProgram, "V");
     PLoc = gl.getUniformLocation(shaderProgram, "P");
 
-    camera = new Camera(45, aspect, 0.01, 50);
-    camera.position = vec3(0,3,20);
+    camera = new Camera(45, aspect, 0.01, 100);
+    camera.position = vec3(0,10,30);
 
     let P = camera.getProjectionMatrix();
     gl.uniformMatrix4fv(PLoc, false, flatten(P));
@@ -171,14 +171,16 @@ async function demoSceneSetup(){
     const prism = new GameObject(new Mesh(gl, prismGeo, shaderProgram), purpleMat);
     prism.transform.position = vec3(-4, 0, 0);
 
-    // scene.add(cube);
+    cube.transform.position = vec3(4, 0, 0);
+    scene.add(cube);
     // scene.add(sphere);
     // scene.add(cylinder);
     // scene.add(prism);
     scene.add(monkeyHead);
 
-    const sceneGUI = new SceneGUI(scene);
-    sceneGUI.state.objectCount();
+    
+
+    const sceneGUI = new SceneGUI(scene, gl, shaderProgram);
 }
 
 
@@ -208,7 +210,7 @@ function render(){
 
     scene.draw(gl, shaderProgram);
     
-    // scene.gameObjects[0].transform.rotation[1] += 0.1; // Rotate first object in scene
+    scene.gameObjects[0].transform.rotation[1] += 0.1; // Rotate first object in scene
 
     requestAnimationFrame(render);
 }

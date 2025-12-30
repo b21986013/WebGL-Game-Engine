@@ -1,4 +1,9 @@
 import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.21/+esm';
+import { createCube } from "../geometry/Cube.js";
+import { Mesh } from "../core/Mesh.js";
+import { GameObject } from "../scene/GameObject.js";
+import { Material } from "../core/Material.js";
+import { vec3 } from "../mvNew.js";
 
 export class LightGUI {
     constructor() {
@@ -45,18 +50,47 @@ export class LightGUI {
 
 export class SceneGUI {
 
-    constructor(scene) {
+    constructor(scene, gl, shaderProgram) {
         this.scene = scene;
+        this.gl = gl;
+        this.shaderProgram = shaderProgram;
+
         this.gui = new GUI();
 
         this.state = {
+            addCube: () => this.addCube(),
             objectCount: () => {
                 console.log("Scene object count:", this.scene.gameObjects.length);
             }
         };
 
-        const debugFolder = this.gui.addFolder("Scene Debug");
-        debugFolder.add(this.state, "objectCount").name("Log Object Count");
-        debugFolder.open();
+        const sceneFolder = this.gui.addFolder("Scene");
+        sceneFolder.add(this.state, "addCube").name("Add Cube");
+        sceneFolder.add(this.state, "objectCount").name("Log Object Count");
+        sceneFolder.open();
+    }
+
+    addCube() {
+        const cubeGeo = createCube(2.0);
+
+        const mat = new Material({
+            color: vec3(0.2, 0.6, 1.0),
+            shininess: 32,
+            specularStrength: 0.5
+        });
+
+        const cube = new GameObject(
+            new Mesh(this.gl, cubeGeo, this.shaderProgram),
+            mat
+        );
+
+        cube.transform.position = vec3(
+            Math.random() * 6 - 3,
+            0,
+            Math.random() * 6 - 3
+        );
+
+        this.scene.add(cube);
+        console.log("Cube added to scene");
     }
 }
