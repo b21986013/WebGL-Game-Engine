@@ -17,10 +17,52 @@ import { loadShaderSource, createProgram } from "./initshaders.js";
 import { loadOBJ } from "./loaders/OBJLoader.js";
 
 // Global variables
-let gl, canvas, shaderProgram, scene, camera, aspect, objGeo, lightSettings;  
+let gl, canvas, shaderProgram, scene, camera, aspect, objGeo, lightSettings, VLoc, PLoc, lastX, lastY, firstMouse; 
+const keys = {}; 
+
 
 async function init() {
     canvas = document.getElementById("gl-canvas");
+
+    lastX = canvas.width / 2;
+    lastY = canvas.height / 2;
+    firstMouse = true;
+
+    // canvas.addEventListener("click", () => {
+    //     canvas.requestPointerLock();
+    // });
+
+   canvas.addEventListener("mousemove", (e) => {
+
+    if (document.pointerLockElement !== canvas) return;
+
+    camera.processMouseMovement(
+        e.movementX,
+        -e.movementY
+    );
+
+    gl.uniformMatrix4fv(
+            gl.getUniformLocation(shaderProgram, "V"),
+            false,
+            flatten(camera.getViewMatrix())
+        );
+    });
+
+    canvas.addEventListener("click", () => {
+        canvas.requestPointerLock();
+    });
+
+    document.addEventListener("pointerlockchange", () => {
+        if (document.pointerLockElement === canvas) {
+            console.log("Mouse locked");
+        } else {
+            console.log("Mouse released");
+        }
+    });
+
+
+    window.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+    window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
     gl = canvas.getContext('webgl2');
     if (!gl) alert("WebGL 2.0 isn't available" );
@@ -46,8 +88,8 @@ async function init() {
 init().then(async() => {
     gl.useProgram(shaderProgram);
  
-    const VLoc = gl.getUniformLocation(shaderProgram, "V");
-    const PLoc = gl.getUniformLocation(shaderProgram, "P");
+    VLoc = gl.getUniformLocation(shaderProgram, "V");
+    PLoc = gl.getUniformLocation(shaderProgram, "P");
 
     camera = new Camera(45, aspect, 0.01, 50);
     camera.position = vec3(0,3,20);
@@ -64,7 +106,7 @@ init().then(async() => {
     gl.uniform3fv(lightPosLoc, flatten(vec3(-5, 0, 5)));
     gl.uniform3fv(viewPosLoc, flatten(camera.position));
 
-
+    
 
     window.addEventListener('resize', () => 
     {
@@ -80,6 +122,7 @@ init().then(async() => {
     demoSceneSetup().then(()=>{
         render();
     })
+
  
 });
 
@@ -137,11 +180,30 @@ async function demoSceneSetup(){
 function render(){
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    function updateCamera() 
+    {
+        if (keys['w']) camera.moveForward();
+        if (keys['s']) camera.moveBackward();
+        if (keys['a']) camera.moveLeft();
+        if (keys['d']) camera.moveRight();
+
+        const V = camera.getViewMatrix();
+        gl.uniformMatrix4fv(VLoc, false, flatten(V));
+
+        gl.uniform3fv(
+            gl.getUniformLocation(shaderProgram, "viewPos"),
+            flatten(camera.position)
+        );
+    }
+
+
+    updateCamera();  
+
     applyLightUniforms(gl, shaderProgram, lightSettings); // ./core/Renderer.js
 
     scene.draw(gl, shaderProgram);
     
-    scene.gameObjects[0].transform.rotation[1] += 0.1; // Rotate first object in scene
+    // scene.gameObjects[0].transform.rotation[1] += 0.1; // Rotate first object in scene
 
     requestAnimationFrame(render);
 }
