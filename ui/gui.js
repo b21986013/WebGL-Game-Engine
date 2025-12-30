@@ -42,3 +42,21 @@ export class LightGUI {
         point.add(this.state, "quadratic", 0.0, 1.0, 0.01);
     }
 }
+
+export class SceneGUI {
+
+    constructor(scene) {
+        this.scene = scene;
+        this.gui = new GUI();
+
+        this.state = {
+            objectCount: () => {
+                console.log("Scene object count:", this.scene.gameObjects.length);
+            }
+        };
+
+        const debugFolder = this.gui.addFolder("Scene Debug");
+        debugFolder.add(this.state, "objectCount").name("Log Object Count");
+        debugFolder.open();
+    }
+}

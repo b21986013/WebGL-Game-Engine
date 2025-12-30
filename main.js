@@ -1,6 +1,6 @@
 "use strict";
 
-import { LightGUI } from "./ui/gui.js";
+import { LightGUI, SceneGUI } from "./ui/gui.js";
 import { applyLightUniforms } from "./core/Renderer.js";
 import { Texture } from "./core/Texture.js";
 import { Material } from "./core/Material.js";
@@ -131,6 +131,8 @@ async function demoSceneSetup(){
     // Create scene objects here and add to scene
     scene = new Scene();
 
+   
+
     new LightGUI();
     lightSettings = new LightGUI().state;
     
@@ -174,6 +176,9 @@ async function demoSceneSetup(){
     // scene.add(cylinder);
     // scene.add(prism);
     scene.add(monkeyHead);
+
+    const sceneGUI = new SceneGUI(scene);
+    sceneGUI.state.objectCount();
 }
 
 
