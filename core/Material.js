@@ -8,28 +8,28 @@ export class Material {
         this.texture = texture;
     }
 
-    apply(gl, program) {
+    apply(gl, shaderProgram) {
         gl.uniform3fv(
-            gl.getUniformLocation(program, "objectColor"),
+            gl.getUniformLocation(shaderProgram, "objectColor"),
             flatten(this.color)
         );
 
         gl.uniform1f(
-            gl.getUniformLocation(program, "shininess"),
+            gl.getUniformLocation(shaderProgram, "shininess"),
             this.shininess
         );
 
         gl.uniform1f(
-            gl.getUniformLocation(program, "specularStrength"),
+            gl.getUniformLocation(shaderProgram, "specularStrength"),
             this.specularStrength
         );
 
         if (this.texture) {
             this.texture.bind(0);
-            gl.uniform1i(gl.getUniformLocation(program, "albedoMap"), 0);
-            gl.uniform1i(gl.getUniformLocation(program, "useTexture"), 1);
+            gl.uniform1i(gl.getUniformLocation(shaderProgram, "albedoMap"), 0);
+            gl.uniform1i(gl.getUniformLocation(shaderProgram, "useTexture"), 1);
         } else {
-            gl.uniform1i(gl.getUniformLocation(program, "useTexture"), 0);
+            gl.uniform1i(gl.getUniformLocation(shaderProgram, "useTexture"), 0);
         }
     }
 }

@@ -41,15 +41,16 @@ export function createTriangularPrism(size = 1.0, height = 1.0) {
   }
 
   // ---------- Alt üçgen ----------
-  pushTriangle(A, C, B); // CCW dışa bakacak şekilde
+  pushTriangle(A, B, C); // CCW dışa bakacak şekilde
 
   // ---------- Üst üçgen ----------
-  pushTriangle(A2, B2, C2);
+  pushTriangle(A2, C2, B2);
 
-  // ---------- Yan yüzler ----------
-  pushQuad(A, B, B2, A2); // yüz 1
-  pushQuad(B, C, C2, B2); // yüz 2
-  pushQuad(C, A, A2, C2); // yüz 3
+  // ---------- Yan yüzler (CCW olacak şekilde) ----------
+  pushQuad(A, A2, B2, B); // yüz 1
+  pushQuad(B, B2, C2, C); // yüz 2
+  pushQuad(C, C2, A2, A); // yüz 3
+
 
   return {
     positions,

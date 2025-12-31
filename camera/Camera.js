@@ -1,4 +1,4 @@
-import { lookAt, perspective, vec3, normalize, cross, add, subtract, scale } from '../mvNew.js';
+import { lookAt, perspective, vec3, normalize, cross, add, subtract, scale, flatten } from '../mvNew.js';
 
 export class Camera {
     constructor(fov = 45, aspect = 1, near = 0.1, far = 100) {
@@ -24,8 +24,26 @@ export class Camera {
         this.sensitivity = 0.1;
 
         this._updateVectors();
+        
     }
 
+    init(gl, shaderProgram)
+    {
+       const {VLoc, PLoc, viewPosLocation} = this.getUniformLocations(gl, shaderProgram);
+        
+        gl.uniformMatrix4fv(PLoc, false, flatten(this.getProjectionMatrix()));
+        gl.uniformMatrix4fv(VLoc, false, flatten(this.getViewMatrix()));
+        gl.uniform3fv(viewPosLocation, flatten(this.position));
+    }
+
+    getUniformLocations(gl, shaderProgram){
+        return  {
+   
+            VLoc: gl.getUniformLocation(shaderProgram, "V"),
+            PLoc: gl.getUniformLocation(shaderProgram, "P"),
+            viewPosLocation: gl.getUniformLocation(shaderProgram, "viewPos")
+        }
+    }
     getViewMatrix() {
         const target = subtract(this.position, vec3(
             -this.front[0],

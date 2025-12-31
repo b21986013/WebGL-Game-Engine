@@ -2,6 +2,7 @@ import { flatten } from '../mvNew.js';
 
 export class Mesh {
     constructor(gl, geometry, shaderProgram) {
+        this.shaderProgram = shaderProgram;
         this.gl = gl;
         this.vao = gl.createVertexArray();
         gl.bindVertexArray(this.vao);

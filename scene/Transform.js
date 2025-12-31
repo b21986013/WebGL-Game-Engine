@@ -1,4 +1,4 @@
-import { mat4, translate, rotateX, rotateY, rotateZ, scale, mult, vec3 } from '../mvNew.js';
+import { mat4, translate, rotateX, rotateY, rotateZ, scale, mult, vec3, normalMatrix, flatten } from '../mvNew.js';
 
 export class Transform {
     constructor() {
@@ -17,5 +17,17 @@ export class Transform {
         M = mult(M, scale(this.scale[0], this.scale[1], this.scale[2]));
 
         return M;
+    }
+
+    apply(gl, shaderProgram)
+    {
+        const NLoc = gl.getUniformLocation(shaderProgram, "normalMatrix");
+        const MLoc = gl.getUniformLocation(shaderProgram, "M");
+
+        const M = this.getModelMatrix();
+        gl.uniformMatrix4fv(MLoc, false, flatten(M));
+
+        const nM = normalMatrix(M);
+        gl.uniformMatrix3fv(NLoc, false, flatten(nM));
     }
 }

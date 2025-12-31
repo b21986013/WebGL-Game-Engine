@@ -1,13 +1,18 @@
-import { flatten, normalMatrix } from "../mvNew.js";
-
 export class Scene {
     constructor() {
         this.gameObjects = [];
-        this.light = null;
+        this.activeObject = null;
+        this.camera = null;
+        this.onActiveObjectChanged = null;
     }
 
     add(gameObject) {
         this.gameObjects.push(gameObject);
+
+        // İlk obje otomatik seçili olsun
+        if (!this.activeObject) {
+            this.activeObject = gameObject;
+        }
     }
 
     update() {
@@ -16,32 +21,28 @@ export class Scene {
         }
     }
 
-    setLight(light) {
-        this.light = light;
+    setActiveObjectByIndex(index) 
+    {
+        if (index >= 0 && index < this.gameObjects.length) {
+            this.activeObject = this.gameObjects[index];
+            console.log("Active object index:", index);
+        }
     }
 
     draw(gl, shaderProgram) {
 
-        if (this.light) {
-            this.light.apply(gl, shaderProgram);
+        for (const obj of this.gameObjects) 
+        {
+            obj.draw(gl, shaderProgram);
         }
+    }
 
-        const modelLoc  = gl.getUniformLocation(shaderProgram, "M");
-        const normalLoc = gl.getUniformLocation(shaderProgram, "normalMatrix");
+    setActiveObject(obj) {
+        this.activeObject = obj;
+        console.log("Active object set:", obj);
 
-        for (const obj of this.gameObjects) {
-
-            const modelMatrix = obj.transform.getModelMatrix();
-            const nM = normalMatrix(modelMatrix);
-
-            gl.uniformMatrix4fv(modelLoc, false, flatten(modelMatrix));
-            gl.uniformMatrix3fv(normalLoc, false, flatten(nM));
-
-            if (obj.material) {
-                obj.material.apply(gl, shaderProgram);
-            }
-
-            obj.mesh.draw();
+        if (this.onActiveObjectChanged) {
+         this.onActiveObjectChanged(obj);
         }
     }
 }
