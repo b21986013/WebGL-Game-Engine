@@ -21,7 +21,7 @@ export function createLightGUI() {
         lightType: 0,
 
         dirX: -5,
-        dirY: 0,
+        dirY: 1,
         dirZ: 1,
 
         posX: -1,
@@ -71,7 +71,7 @@ export function createSceneGUI(scene, gl, shaderProgram, materialGUI, transformG
             shininess: 32,
             specularStrength: 0.5
         });
-            const cubeGeo = createCube(2.0);
+            const cubeGeo = createCube(1.0);
 
             const cube = new GameObject(
                 new Mesh(gl, cubeGeo, shaderProgram),
@@ -79,7 +79,7 @@ export function createSceneGUI(scene, gl, shaderProgram, materialGUI, transformG
             );
 
             cube.transform.position = vec3(
-                Math.random() * 10 - 5,
+                Math.random() * 6 - 3,
                 0,
                 0
             );
@@ -100,7 +100,7 @@ export function createSceneGUI(scene, gl, shaderProgram, materialGUI, transformG
             });
             const cylinder = new GameObject(new Mesh(gl, createCylinder(), shaderProgram), defaultMat, "Cylinder");
             cylinder.transform.position  = vec3(
-                Math.random() * 10 - 5,
+                Math.random() * 6 - 3,
                 0,
                 0
             );
@@ -118,7 +118,7 @@ export function createSceneGUI(scene, gl, shaderProgram, materialGUI, transformG
                 shininess: 32,
                 specularStrength: 0.5
             });
-            const prism = new GameObject(new Mesh(gl, createTriangularPrism(2.0, 4.0), shaderProgram), defaultMat, "Prism");
+            const prism = new GameObject(new Mesh(gl, createTriangularPrism(1, 2.0), shaderProgram), defaultMat, "Prism");
             prism.transform.position = new vec3(Math.random() * 10 - 5, 0, 0);
             scene.add(prism);
             materialGUI.syncFromObject();
@@ -134,8 +134,8 @@ export function createSceneGUI(scene, gl, shaderProgram, materialGUI, transformG
                 shininess: 32,
                 specularStrength: 0.5
             });
-            const sphere = new GameObject(new Mesh(gl, createSphere(), shaderProgram), defaultMat, "Sphere");
-            sphere.transform.position = new vec3(Math.random() * 10 -5, 0, 0);
+            const sphere = new GameObject(new Mesh(gl, createSphere(0.5), shaderProgram), defaultMat, "Sphere");
+            sphere.transform.position = new vec3(Math.random() * 6 - 3, 0, 0);
             scene.add(sphere);
             materialGUI.syncFromObject();
             materialGUI.buildObjectSelector();
@@ -239,7 +239,7 @@ export function createTransformGUI(scene) {
             const t = scene.activeObject.transform;
 
         state.posX = t.position[0];
-        state.posY = t.position[1];
+        state.posY = t.position[1]; 
         state.posZ = t.position[2];
 
         state.rotX = t.rotation[0] * 180 / Math.PI;

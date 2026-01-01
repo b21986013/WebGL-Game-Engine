@@ -3,11 +3,15 @@
 import { createLightGUI, createSceneGUI, createTransformGUI, createMaterialGUI} from "./ui/gui.js";
 import { applyLightUniforms } from "./core/Renderer.js";
 import { Texture } from "./core/Texture.js";
+import { Mesh } from "./core/Mesh.js";
 import { Material } from "./core/Material.js";
 import { vec3,  flatten } from "./mvNew.js";
 import { Camera } from "./camera/Camera.js";
 import { Scene } from "./scene/Scene.js";
+import { loadOBJ } from "./loaders/OBJLoader.js";
 import { loadShaderSource, createProgram } from "./initshaders.js";
+import { GameObject } from "./scene/GameObject.js";
+import { createCube } from "./geometry/Cube.js";
 
 // Global variables
 let gl, canvas, shaderProgram, scene, aspect, lightSettings; 
@@ -57,8 +61,8 @@ function handleResize(){
         gl.viewport(0,0,canvas.width,canvas.height);
         aspect = canvas.width/canvas.height;
         scene.camera.updateAspect(aspect);
-        const PLoc = camera.getUniformLocations(gl, shaderProgram).PLoc;
-        gl.uniformMatrix4fv(PLoc, false, flatten(camera.getProjectionMatrix()));
+        const PLoc = scene.camera.getUniformLocations(gl, shaderProgram).PLoc;
+        gl.uniformMatrix4fv(PLoc, false, flatten(scene.camera.getProjectionMatrix()));
     });
 }
 
@@ -93,7 +97,7 @@ init().then(async() => {
     scene = new Scene();
 
     const camera = new Camera(45, aspect, 0.01, 50);
-    camera.position = vec3(0,3,30);
+    camera.position = vec3(0,3,10);
     camera.init(gl, shaderProgram);
     
     scene.camera = camera;
@@ -120,16 +124,55 @@ async function demoSceneSetup(){
         color: vec3(1, 1, 1),
         shininess: 64,
         specularStrength: 1.0,
-        texture: new Texture(gl, "./textures/checkers.png")
+        texture: new Texture(gl, "./textures/wall.jpg")
     });
+
+    const groundTexturedMat = new Material({
+        color: vec3(1, 1, 1),
+        shininess: 64,
+        specularStrength: 1.0,
+        texture: new Texture(gl, "./textures/ground.jpg")
+    });
+
+   
 
     const purpleMat = new Material({
         color: vec3(1, 0, 1),
         shininess: 32,
-        specularStrength: 0.5,
-    });
+        specularStrength: 0.5
+    })
 
-    // const objGeo = await loadOBJ("models/monkey_head.obj");
+
+
+    for(var i = 0; i < 10; i++){
+        for(var j = 0; j < 5; j++){
+            const brick = new GameObject(new Mesh(gl, createCube(1.0), shaderProgram), checkerTexturedMat);
+            brick.transform.position = vec3(i - 5 , j, -5);
+            scene.add(brick);
+        }
+    }
+    for(var i = 0; i < 10; i++){
+        for(var j = 0; j < 5; j++){
+            const brick = new GameObject(new Mesh(gl, createCube(1.0), shaderProgram), checkerTexturedMat);
+            brick.transform.position = vec3(5 , j, i - 5);
+            scene.add(brick);
+        }
+    }
+
+    const groundObj = new GameObject(new Mesh(gl, createCube(1.0), shaderProgram), groundTexturedMat);
+    groundObj.transform.position = vec3(0, -1, 0);
+    groundObj.transform.scale = vec3(10, 1, 10);
+    scene.add(groundObj)
+
+    const objGeo = await loadOBJ("models/monkey_head.obj");
+    const monkeyObj =  new GameObject(new Mesh(gl, objGeo, shaderProgram), purpleMat)
+    monkeyObj.transform.scale = vec3(0.5, 0.5, 0.5)
+    scene.add(monkeyObj)
+
+    
+     
+
+    
     // const monkeyHead = new GameObject(new Mesh(gl,objGeo,shaderProgram) , purpleMat);
     // monkeyHead.transform.position = vec3(0, 0, 0);
     // monkeyHead.transform.scale = vec3(1, 1, 1);

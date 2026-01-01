@@ -1,7 +1,7 @@
 import { vec3, vec4, normalize } from "../mvNew.js";
 
 export function createCylinder(
-    radius = 1.0,
+    radius = 0.5,
     height = 2.0,
     segments = 32
 ) {
