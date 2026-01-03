@@ -1,6 +1,6 @@
 "use strict";
 
-import { createLightGUI, createSceneGUI, createTransformGUI, createMaterialGUI} from "./ui/gui.js";
+import { createLightGUI, createSceneGUI, createTransformGUI, createMaterialGUI, createGlobalObjectSelector} from "./ui/gui.js";
 import { applyLightUniforms } from "./core/Renderer.js";
 import { Texture } from "./core/Texture.js";
 import { Mesh } from "./core/Mesh.js";
@@ -113,12 +113,13 @@ init().then(async() => {
 
 
 async function demoSceneSetup(){
-    
-
     lightSettings = createLightGUI();
-    const transformGUI = createTransformGUI(scene);
-    const materialGUI =  createMaterialGUI(scene);
-    createSceneGUI(scene, gl, shaderProgram, materialGUI, transformGUI);
+    
+    createTransformGUI(scene);
+    createMaterialGUI(scene);
+    createGlobalObjectSelector(scene);
+    createSceneGUI(scene, gl, shaderProgram);
+
 
     const checkerTexturedMat = new Material({
         color: vec3(1, 1, 1),
@@ -134,52 +135,36 @@ async function demoSceneSetup(){
         texture: new Texture(gl, "./textures/ground.jpg")
     });
 
-   
-
     const purpleMat = new Material({
         color: vec3(1, 0, 1),
         shininess: 32,
         specularStrength: 0.5
     })
 
-
-
     for(var i = 0; i < 10; i++){
         for(var j = 0; j < 5; j++){
-            const brick = new GameObject(new Mesh(gl, createCube(1.0), shaderProgram), checkerTexturedMat);
+            const brick = new GameObject(new Mesh(gl, createCube(1.0), shaderProgram), checkerTexturedMat,null, false);
             brick.transform.position = vec3(i - 5 , j, -5);
             scene.add(brick);
         }
     }
     for(var i = 0; i < 10; i++){
         for(var j = 0; j < 5; j++){
-            const brick = new GameObject(new Mesh(gl, createCube(1.0), shaderProgram), checkerTexturedMat);
+            const brick = new GameObject(new Mesh(gl, createCube(1.0), shaderProgram), checkerTexturedMat, null, false);
             brick.transform.position = vec3(5 , j, i - 5);
             scene.add(brick);
         }
     }
 
-    const groundObj = new GameObject(new Mesh(gl, createCube(1.0), shaderProgram), groundTexturedMat);
+    const groundObj = new GameObject(new Mesh(gl, createCube(1.0), shaderProgram), groundTexturedMat, null, false);
     groundObj.transform.position = vec3(0, -1, 0);
     groundObj.transform.scale = vec3(10, 1, 10);
     scene.add(groundObj)
 
     const objGeo = await loadOBJ("models/monkey_head.obj");
-    const monkeyObj =  new GameObject(new Mesh(gl, objGeo, shaderProgram), purpleMat)
+    const monkeyObj =  new GameObject(new Mesh(gl, objGeo, shaderProgram), purpleMat, null, false)
     monkeyObj.transform.scale = vec3(0.5, 0.5, 0.5)
     scene.add(monkeyObj)
-
-    
-     
-
-    
-    // const monkeyHead = new GameObject(new Mesh(gl,objGeo,shaderProgram) , purpleMat);
-    // monkeyHead.transform.position = vec3(0, 0, 0);
-    // monkeyHead.transform.scale = vec3(1, 1, 1);
-
-    // scene.add(monkeyHead);
-
-    // scene.add(new GameObject(new Mesh(gl, createCube(2.0), shaderProgram), checkerTexturedMat));
     
 }
 

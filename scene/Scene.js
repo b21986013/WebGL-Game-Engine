@@ -3,16 +3,12 @@ export class Scene {
         this.gameObjects = [];
         this.activeObject = null;
         this.camera = null;
-        this.onActiveObjectChanged = null;
+        this.onActiveObjectChangedSyncTransform = null;
+        this.onActiveObjectChangedSyncMaterial = null;   
     }
 
     add(gameObject) {
         this.gameObjects.push(gameObject);
-
-        // İlk obje otomatik seçili olsun
-        if (!this.activeObject) {
-            this.activeObject = gameObject;
-        }
     }
 
     update() {
@@ -25,7 +21,14 @@ export class Scene {
     {
         if (index >= 0 && index < this.gameObjects.length) {
             this.activeObject = this.gameObjects[index];
-            console.log("Active object index:", index);
+            // console.log("Active object index:", index);
+            if (this.onActiveObjectChangedSyncMaterial) {
+                this.onActiveObjectChangedSyncMaterial();
+            }
+
+            if(this.onActiveObjectChangedSyncTransform){
+                this.onActiveObjectChangedSyncTransform();
+            }
         }
     }
 
@@ -34,15 +37,6 @@ export class Scene {
         for (const obj of this.gameObjects) 
         {
             obj.draw(gl, shaderProgram);
-        }
-    }
-
-    setActiveObject(obj) {
-        this.activeObject = obj;
-        console.log("Active object set:", obj);
-
-        if (this.onActiveObjectChanged) {
-         this.onActiveObjectChanged(obj);
         }
     }
 }

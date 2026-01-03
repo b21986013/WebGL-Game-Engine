@@ -13,6 +13,38 @@ import { vec3 } from "../mvNew.js";
 // ============================
 export const gui = new GUI({ title: "Scene Controls" });
 
+const activeObjectFolder = gui.addFolder("Active Object"); 
+let activeObjectController;
+
+export function createGlobalObjectSelector(scene) {
+    const state = {
+        selectedObject: "None",
+    };
+
+    function buildOptions() {
+        const options = {};
+        scene.gameObjects.forEach((obj, index) => {
+            if(obj.selectable){
+                options[`${obj.name}${index}`] = index;
+            }
+        });
+
+        return options;
+    }
+
+    function rebuild() {
+        if (activeObjectController) activeObjectController.destroy();
+        activeObjectController = activeObjectFolder
+            .add(state, "selectedObject", buildOptions())
+            .name("Selected")
+            .onChange(v => {
+                scene.setActiveObjectByIndex(Number(v));
+            });
+    }
+
+    rebuild();
+}
+
 // ============================
 // LIGHT GUI
 // ============================
@@ -20,7 +52,7 @@ export function createLightGUI() {
     const state = {
         lightType: 0,
 
-        dirX: -5,
+        dirX: -1,
         dirY: 1,
         dirZ: 1,
 
@@ -61,8 +93,7 @@ export function createLightGUI() {
 // ============================
 // SCENE GUI
 // ============================
-export function createSceneGUI(scene, gl, shaderProgram, materialGUI, transformGUI) {
-
+export function createSceneGUI(scene, gl, shaderProgram) {
     const state = {
         addCube: () => {
 
@@ -75,7 +106,7 @@ export function createSceneGUI(scene, gl, shaderProgram, materialGUI, transformG
 
             const cube = new GameObject(
                 new Mesh(gl, cubeGeo, shaderProgram),
-                defaultMat, "Cube"
+                defaultMat, "Cube", true
             );
 
             cube.transform.position = vec3(
@@ -85,10 +116,7 @@ export function createSceneGUI(scene, gl, shaderProgram, materialGUI, transformG
             );
 
             scene.add(cube);
-            materialGUI.syncFromObject();
-            materialGUI.buildObjectSelector();
-            transformGUI.syncFromObject();
-            transformGUI.buildObjectSelector();
+            createGlobalObjectSelector(scene);
             console.log("Cube added");
         },
 
@@ -98,17 +126,14 @@ export function createSceneGUI(scene, gl, shaderProgram, materialGUI, transformG
                 shininess: 32,
                 specularStrength: 0.5
             });
-            const cylinder = new GameObject(new Mesh(gl, createCylinder(), shaderProgram), defaultMat, "Cylinder");
+            const cylinder = new GameObject(new Mesh(gl, createCylinder(), shaderProgram), defaultMat, "Cylinder", true);
             cylinder.transform.position  = vec3(
                 Math.random() * 6 - 3,
                 0,
                 0
             );
             scene.add(cylinder);
-            materialGUI.syncFromObject();
-            materialGUI.buildObjectSelector();
-            transformGUI.syncFromObject();
-            transformGUI.buildObjectSelector();
+            createGlobalObjectSelector(scene);
              console.log("Cylinder added");
         },
 
@@ -118,13 +143,10 @@ export function createSceneGUI(scene, gl, shaderProgram, materialGUI, transformG
                 shininess: 32,
                 specularStrength: 0.5
             });
-            const prism = new GameObject(new Mesh(gl, createTriangularPrism(1, 2.0), shaderProgram), defaultMat, "Prism");
+            const prism = new GameObject(new Mesh(gl, createTriangularPrism(1, 2.0), shaderProgram), defaultMat, "Prism", true);
             prism.transform.position = new vec3(Math.random() * 10 - 5, 0, 0);
             scene.add(prism);
-            materialGUI.syncFromObject();
-            materialGUI.buildObjectSelector();
-            transformGUI.syncFromObject();
-            transformGUI.buildObjectSelector();
+            createGlobalObjectSelector(scene);
             console.log("Prism added.");
         },
 
@@ -134,13 +156,10 @@ export function createSceneGUI(scene, gl, shaderProgram, materialGUI, transformG
                 shininess: 32,
                 specularStrength: 0.5
             });
-            const sphere = new GameObject(new Mesh(gl, createSphere(0.5), shaderProgram), defaultMat, "Sphere");
+            const sphere = new GameObject(new Mesh(gl, createSphere(0.5), shaderProgram), defaultMat, "Sphere", true);
             sphere.transform.position = new vec3(Math.random() * 6 - 3, 0, 0);
             scene.add(sphere);
-            materialGUI.syncFromObject();
-            materialGUI.buildObjectSelector();
-            transformGUI.syncFromObject();
-            transformGUI.buildObjectSelector();
+            createGlobalObjectSelector(scene);
             console.log("sphere added");
         },
 
@@ -149,193 +168,127 @@ export function createSceneGUI(scene, gl, shaderProgram, materialGUI, transformG
         }
     };
 
-    const sceneFolder = gui.addFolder("Scene Manipulation");
+    const sceneFolder = gui.addFolder("Add Geometric Objects");
     sceneFolder.add(state, "addCube").name("Add Cube");
     sceneFolder.add(state, "addSphere").name("Add Sphere");
     sceneFolder.add(state, "addPrism").name("Add Prism");
     sceneFolder.add(state, "addCylinder").name("Add Cylinder");
     sceneFolder.add(state, "objectCount").name("Log Object Count");
     sceneFolder.close();
-
-    return state;
 }
 
 
 export function createTransformGUI(scene) {
-
     const state = {
-        selectedIndex: 0,
-
         posX: 0, posY: 0, posZ: 0,
         rotX: 0, rotY: 0, rotZ: 0,
         scaleX: 1, scaleY: 1, scaleZ: 1
     };
 
-
     const folder = gui.addFolder("Transform");
     folder.close();
 
-    let objectController, pos, rot, scl;
+    const pos = folder.addFolder("Position");
+    pos.add(state, "posX", -10, 10, 0.1).onChange(v => scene.activeObject.transform.position[0] = v);
+    pos.add(state, "posY", -10, 10, 0.1).onChange(v => scene.activeObject.transform.position[1] = v);
+    pos.add(state, "posZ", -10, 10, 0.1).onChange(v => scene.activeObject.transform.position[2] = v);
 
-    function buildObjectOptions() {
-        const options = {};
-        scene.gameObjects.forEach((obj, i) => {
-            options[`${obj.name} ${i}`] = String(i);
-        });
-        return options;
-    }
+    const rot = folder.addFolder("Rotation");
+    rot.add(state, "rotX", -180, 180, 1).onChange(v => scene.activeObject.transform.rotation[0] = v);
+    rot.add(state, "rotY", -180, 180, 1).onChange(v => scene.activeObject.transform.rotation[1] = v);
+    rot.add(state, "rotZ", -180, 180, 1).onChange(v => scene.activeObject.transform.rotation[2] = v);
 
-    function buildObjectSelector() {
-        if (objectController) {
-            objectController.destroy();
-        }
+    const scl = folder.addFolder("Scale");
+    scl.add(state, "scaleX", 0.1, 5, 0.1).onChange(v => scene.activeObject.transform.scale[0] = v);
+    scl.add(state, "scaleY", 0.1, 5, 0.1).onChange(v => scene.activeObject.transform.scale[1] = v);
+    scl.add(state, "scaleZ", 0.1, 5, 0.1).onChange(v => scene.activeObject.transform.scale[2] = v);
 
-        objectController = folder
-            .add(state, "selectedObject", buildObjectOptions())
-            .name("Active Object")
-            .onChange(v => {
-                 
-                const index = Number(v);
-                scene.setActiveObjectByIndex(index);
-                syncFromObject();
-
-                if(pos || rot || scl)
-                {
-                    pos.destroy();
-                    rot.destroy();
-                    scl.destroy();
-                }
-                // ===== Position =====
-                pos = folder.addFolder("Position");
-                pos.add(state, "posX", -10, 10, 0.1).onChange(v => scene.activeObject.transform.position[0] = v);
-                pos.add(state, "posY", -10, 10, 0.1).onChange(v => scene.activeObject.transform.position[1] = v);
-                pos.add(state, "posZ", -10, 10, 0.1).onChange(v => scene.activeObject.transform.position[2] = v);
-
-                // ===== Rotation (degrees → radians) =====
-                rot = folder.addFolder("Rotation");
-                rot.add(state, "rotX", -180, 180, 1).onChange(v => scene.activeObject.transform.rotation[0] = v);
-                rot.add(state, "rotY", -180, 180, 1).onChange(v => scene.activeObject.transform.rotation[1] = v);
-                rot.add(state, "rotZ", -180, 180, 1).onChange(v => scene.activeObject.transform.rotation[2] = v);
-
-                // ===== Scale =====
-                scl = folder.addFolder("Scale");
-                scl.add(state, "scaleX", 0.1, 5, 0.1).onChange(v => scene.activeObject.transform.scale[0] = v);
-                scl.add(state, "scaleY", 0.1, 5, 0.1).onChange(v => scene.activeObject.transform.scale[1] = v);
-                scl.add(state, "scaleZ", 0.1, 5, 0.1).onChange(v => scene.activeObject.transform.scale[2] = v);
-                
-            });
-
-         
-    }
-
-    // ===== Object Selector =====
-    buildObjectSelector();
-
-    
-    // ===== Sync GUI ← Object =====
     function syncFromObject() {
-
-        if(scene.activeObject){
-            const t = scene.activeObject.transform;
+        // console.log("sync transform");
+        if (!scene.activeObject) return;
+        const t = scene.activeObject.transform;
 
         state.posX = t.position[0];
-        state.posY = t.position[1]; 
+        state.posY = t.position[1];
         state.posZ = t.position[2];
 
-        state.rotX = t.rotation[0] * 180 / Math.PI;
-        state.rotY = t.rotation[1] * 180 / Math.PI;
-        state.rotZ = t.rotation[2] * 180 / Math.PI;
+        state.rotX = t.rotation[0];
+        state.rotY = t.rotation[1];
+        state.rotZ = t.rotation[2];
 
         state.scaleX = t.scale[0];
         state.scaleY = t.scale[1];
         state.scaleZ = t.scale[2];
 
         folder.controllersRecursive().forEach(c => c.updateDisplay());
-        }
-        
     }
 
-    scene.onActiveObjectChanged = () => {
-        syncFromObject();
-    };
-
-    // İlk senkron
-    if (scene.activeObject) syncFromObject();
-
-    return {
-        buildObjectSelector, syncFromObject
-    };
+    scene.onActiveObjectChangedSyncTransform = syncFromObject;
 }
 
-export function createMaterialGUI(scene){
+export function createMaterialGUI(scene) {
     const state = {
-        selectedIndex:0,
-        R: 0, G: 0, B: 0,
+        R: 0,
+        G: 0,
+        B: 0,
         shininess: 32,
         specularStrength: 0.5
-    }
+    };
 
     const folder = gui.addFolder("Material");
     folder.close();
 
-    let objectController;
-     function buildObjectOptions() {
-        const options = {};
-        scene.gameObjects.forEach((obj, i) => {
-            options[`${obj.name} ${i}`] = String(i);
+    const colorFolder = folder.addFolder("Color");
+    colorFolder.add(state, "R", 0, 1, 0.01)
+        .onChange(v => {
+            if (scene.activeObject) {
+                scene.activeObject.material.color[0] = v;
+            }
         });
-        return options;
-    }
 
-    function buildObjectSelector(){
-        if (objectController) {
-            objectController.destroy();
-        }
+    colorFolder.add(state, "G", 0, 1, 0.01)
+        .onChange(v => {
+            if (scene.activeObject) {
+                scene.activeObject.material.color[1] = v;
+            }
+        });
 
-        objectController = folder
-            .add(state, "selectedObject", buildObjectOptions())
-            .name("Active Object")
-            .onChange(v => {
-                const index = Number(v);
-                scene.setActiveObjectByIndex(index);
-                syncFromObject();
+    colorFolder.add(state, "B", 0, 1, 0.01)
+        .onChange(v => {
+            if (scene.activeObject) {
+                scene.activeObject.material.color[2] = v;
+            }
+        });
 
-                folder.add(state, "R", 0, 1, 0.1).onChange(v => scene.activeObject.material.color[0] = v);
-                folder.add(state, "G", 0, 1, 0.1).onChange(v => scene.activeObject.material.color[1] = v);
-                folder.add(state, "B", 0, 1, 0.1).onChange(v => scene.activeObject.material.color[2] = v);
-                folder.add(state, "shininess", 1, 128, 1).onChange(v => scene.activeObject.material.shininess = v);
-                folder.add(state, "specularStrength", 0.0, 1.0, 0.01).onChange(v => scene.activeObject.material.specularStrength = v);
-            });
-    }
+    folder.add(state, "shininess", 1, 128, 1)
+        .onChange(v => {
+            if (scene.activeObject) {
+                scene.activeObject.material.shininess = v;
+            }
+        });
 
-    // ===== Object Selector =====
-    buildObjectSelector();
-    
-     // ===== Sync GUI ← Object =====
+    folder.add(state, "specularStrength", 0.0, 1.0, 0.01)
+        .onChange(v => {
+            if (scene.activeObject) {
+                scene.activeObject.material.specularStrength = v;
+            }
+        });
+
     function syncFromObject() {
-        if(scene.activeObject){
-            const defMat = scene.activeObject.material;
+        // console.log("sync material");
+        if (!scene.activeObject) return;
 
-            state.R = defMat.color[0];
-            state.G = defMat.color[1];
-            state.B = defMat.color[2];
+        const mat = scene.activeObject.material;
 
-            state.shininess = defMat.shininess;
-            state.specularStrength = defMat.specularStrength;
+        state.R = mat.color[0];
+        state.G = mat.color[1];
+        state.B = mat.color[2];
 
-            folder.controllersRecursive().forEach(c => c.updateDisplay());
-        }  
-        
+        state.shininess = mat.shininess;
+        state.specularStrength = mat.specularStrength;
+
+        folder.controllersRecursive().forEach(c => c.updateDisplay());
     }
 
-    scene.onActiveObjectChanged = () => {
-        syncFromObject();
-    };
-    
-    // İlk senkron
-    if (scene.activeObject) syncFromObject();
-
-    return {
-        syncFromObject, buildObjectSelector
-    };
+    scene.onActiveObjectChangedSyncMaterial = syncFromObject;
 }
