@@ -17,6 +17,17 @@ export const gui = new GUI({ title: "Scene Controls" });
 const activeObjectFolder = gui.addFolder("Active Object"); 
 let activeObjectController;
 
+function withActiveObject(scene, fn) {
+    return v => {
+        if (!scene.activeObject) {
+            console.warn("No active object selected");
+            return;
+        }
+        fn(scene.activeObject, v);
+    };
+}
+
+
 export function createGlobalObjectSelector(scene) {
     const state = {
         selectedObject: "None",
@@ -118,6 +129,7 @@ export function createSceneGUI(scene, gl, shaderProgram) {
 
             scene.add(cube);
             createGlobalObjectSelector(scene);
+            scene.activeObject = null;
             console.log("Cube added");
         },
 
@@ -135,6 +147,7 @@ export function createSceneGUI(scene, gl, shaderProgram) {
             );
             scene.add(cylinder);
             createGlobalObjectSelector(scene);
+            scene.activeObject = null;
              console.log("Cylinder added");
         },
 
@@ -148,6 +161,7 @@ export function createSceneGUI(scene, gl, shaderProgram) {
             prism.transform.position = new vec3(Math.random() * 10 - 5, 0, 0);
             scene.add(prism);
             createGlobalObjectSelector(scene);
+            scene.activeObject = null;
             console.log("Prism added.");
         },
 
@@ -160,6 +174,7 @@ export function createSceneGUI(scene, gl, shaderProgram) {
             const sphere = new GameObject(new Mesh(gl, createSphere(0.5), shaderProgram), defaultMat, "Sphere", true);
             sphere.transform.position = new vec3(Math.random() * 6 - 3, 0, 0);
             scene.add(sphere);
+            scene.activeObject = null;
             createGlobalObjectSelector(scene);
             console.log("sphere added");
         },
@@ -180,6 +195,7 @@ export function createSceneGUI(scene, gl, shaderProgram) {
 
 
 export function createTransformGUI(scene) {
+
     const state = {
         posX: 0, posY: 0, posZ: 0,
         rotX: 0, rotY: 0, rotZ: 0,
@@ -189,24 +205,46 @@ export function createTransformGUI(scene) {
     const folder = gui.addFolder("Transform");
     folder.close();
 
+    // ===== Helper =====
+    const guard = (fn) => withActiveObject(scene, fn);
+
+    // ===== Position =====
     const pos = folder.addFolder("Position");
-    pos.add(state, "posX", -10, 10, 0.1).onChange(v => scene.activeObject.transform.position[0] = v);
-    pos.add(state, "posY", -10, 10, 0.1).onChange(v => scene.activeObject.transform.position[1] = v);
-    pos.add(state, "posZ", -10, 10, 0.1).onChange(v => scene.activeObject.transform.position[2] = v);
+    pos.add(state, "posX", -10, 10, 0.1)
+        .onChange(guard((obj, v) => obj.transform.position[0] = v));
 
+    pos.add(state, "posY", -10, 10, 0.1)
+        .onChange(guard((obj, v) => obj.transform.position[1] = v));
+
+    pos.add(state, "posZ", -10, 10, 0.1)
+        .onChange(guard((obj, v) => obj.transform.position[2] = v));
+
+    // ===== Rotation =====
     const rot = folder.addFolder("Rotation");
-    rot.add(state, "rotX", -180, 180, 1).onChange(v => scene.activeObject.transform.rotation[0] = v);
-    rot.add(state, "rotY", -180, 180, 1).onChange(v => scene.activeObject.transform.rotation[1] = v);
-    rot.add(state, "rotZ", -180, 180, 1).onChange(v => scene.activeObject.transform.rotation[2] = v);
+    rot.add(state, "rotX", -180, 180, 1)
+        .onChange(guard((obj, v) => obj.transform.rotation[0] = v));
 
+    rot.add(state, "rotY", -180, 180, 1)
+        .onChange(guard((obj, v) => obj.transform.rotation[1] = v));
+
+    rot.add(state, "rotZ", -180, 180, 1)
+        .onChange(guard((obj, v) => obj.transform.rotation[2] = v));
+
+    // ===== Scale =====
     const scl = folder.addFolder("Scale");
-    scl.add(state, "scaleX", 0.1, 5, 0.1).onChange(v => scene.activeObject.transform.scale[0] = v);
-    scl.add(state, "scaleY", 0.1, 5, 0.1).onChange(v => scene.activeObject.transform.scale[1] = v);
-    scl.add(state, "scaleZ", 0.1, 5, 0.1).onChange(v => scene.activeObject.transform.scale[2] = v);
+    scl.add(state, "scaleX", 0.1, 5, 0.1)
+        .onChange(guard((obj, v) => obj.transform.scale[0] = v));
 
+    scl.add(state, "scaleY", 0.1, 5, 0.1)
+        .onChange(guard((obj, v) => obj.transform.scale[1] = v));
+
+    scl.add(state, "scaleZ", 0.1, 5, 0.1)
+        .onChange(guard((obj, v) => obj.transform.scale[2] = v));
+
+    // ===== Sync GUI ← Object =====
     function syncFromObject() {
-        // console.log("sync transform");
         if (!scene.activeObject) return;
+
         const t = scene.activeObject.transform;
 
         state.posX = t.position[0];
@@ -225,9 +263,12 @@ export function createTransformGUI(scene) {
     }
 
     scene.onActiveObjectChangedSyncTransform = syncFromObject;
+    syncFromObject();
 }
 
+
 export function createMaterialGUI(scene) {
+
     const state = {
         R: 0,
         G: 0,
@@ -239,44 +280,29 @@ export function createMaterialGUI(scene) {
     const folder = gui.addFolder("Material");
     folder.close();
 
+    const guard = fn => withActiveObject(scene, fn);
+
+    // ===== Color =====
     const colorFolder = folder.addFolder("Color");
+
     colorFolder.add(state, "R", 0, 1, 0.01)
-        .onChange(v => {
-            if (scene.activeObject) {
-                scene.activeObject.material.color[0] = v;
-            }
-        });
+        .onChange(guard((obj, v) => obj.material.color[0] = v));
 
     colorFolder.add(state, "G", 0, 1, 0.01)
-        .onChange(v => {
-            if (scene.activeObject) {
-                scene.activeObject.material.color[1] = v;
-            }
-        });
+        .onChange(guard((obj, v) => obj.material.color[1] = v));
 
     colorFolder.add(state, "B", 0, 1, 0.01)
-        .onChange(v => {
-            if (scene.activeObject) {
-                scene.activeObject.material.color[2] = v;
-            }
-        });
+        .onChange(guard((obj, v) => obj.material.color[2] = v));
 
+    // ===== Material Params =====
     folder.add(state, "shininess", 1, 128, 1)
-        .onChange(v => {
-            if (scene.activeObject) {
-                scene.activeObject.material.shininess = v;
-            }
-        });
+        .onChange(guard((obj, v) => obj.material.shininess = v));
 
     folder.add(state, "specularStrength", 0.0, 1.0, 0.01)
-        .onChange(v => {
-            if (scene.activeObject) {
-                scene.activeObject.material.specularStrength = v;
-            }
-        });
+        .onChange(guard((obj, v) => obj.material.specularStrength = v));
 
+    // ===== Sync GUI ← Object =====
     function syncFromObject() {
-        // console.log("sync material");
         if (!scene.activeObject) return;
 
         const mat = scene.activeObject.material;
@@ -292,30 +318,29 @@ export function createMaterialGUI(scene) {
     }
 
     scene.onActiveObjectChangedSyncMaterial = syncFromObject;
+    syncFromObject();
 }
 
-export function createTextureGUI(scene, gl){
-   
+
+export function createTextureGUI(scene, gl) {
+
+    const guard = fn => withActiveObject(scene, fn);
+
     const state = {
-        "applyMaterial": () => 
-        {
-            console.log("material applied");
-            
-            const texturedMat = new Material({
+        applyCheckerTexture: guard((obj) => {
+            obj.material = new Material({
                 color: vec3(1, 1, 1),
                 shininess: 64,
                 specularStrength: 1.0,
                 texture: new Texture(gl, "./textures/checker.png")
             });
-
-            scene.activeObject.material = texturedMat;
-        }
-    }
+        })
+    };
 
     const textureFolder = gui.addFolder("Apply Preset Textures");
     textureFolder.close();
 
-    textureFolder.add(state, "applyMaterial").name("Apply Material");
-
-
+    textureFolder
+        .add(state, "applyCheckerTexture")
+        .name("Apply Checker Texture");
 }
