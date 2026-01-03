@@ -1,6 +1,6 @@
 "use strict";
 
-import { createLightGUI, createSceneGUI, createTransformGUI, createMaterialGUI, createGlobalObjectSelector} from "./ui/gui.js";
+import { createLightGUI, createSceneGUI, createTransformGUI, createMaterialGUI, createGlobalObjectSelector, createTextureGUI} from "./ui/gui.js";
 import { applyLightUniforms } from "./core/Renderer.js";
 import { Texture } from "./core/Texture.js";
 import { Mesh } from "./core/Mesh.js";
@@ -117,10 +117,10 @@ async function demoSceneSetup(){
     
     createTransformGUI(scene);
     createMaterialGUI(scene);
+    createTextureGUI(scene, gl);
     createGlobalObjectSelector(scene);
     createSceneGUI(scene, gl, shaderProgram);
-
-
+    
     const checkerTexturedMat = new Material({
         color: vec3(1, 1, 1),
         shininess: 64,

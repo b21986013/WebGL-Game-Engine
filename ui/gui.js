@@ -1,5 +1,6 @@
 import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.21/+esm';
 import { createCube } from "../geometry/Cube.js";
+import { Texture } from '../core/Texture.js';
 import { createCylinder } from '../geometry/Cylinder.js'; 
 import {createSphere} from '../geometry/Sphere.js';
 import {createTriangularPrism} from '../geometry/Prism.js';
@@ -291,4 +292,30 @@ export function createMaterialGUI(scene) {
     }
 
     scene.onActiveObjectChangedSyncMaterial = syncFromObject;
+}
+
+export function createTextureGUI(scene, gl){
+   
+    const state = {
+        "applyMaterial": () => 
+        {
+            console.log("material applied");
+            
+            const texturedMat = new Material({
+                color: vec3(1, 1, 1),
+                shininess: 64,
+                specularStrength: 1.0,
+                texture: new Texture(gl, "./textures/checker.png")
+            });
+
+            scene.activeObject.material = texturedMat;
+        }
+    }
+
+    const textureFolder = gui.addFolder("Apply Preset Textures");
+    textureFolder.close();
+
+    textureFolder.add(state, "applyMaterial").name("Apply Material");
+
+
 }
