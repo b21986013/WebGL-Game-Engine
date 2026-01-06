@@ -5,8 +5,8 @@ export class Camera {
         this.position = vec3(0, 0, 0);
 
         // Camera orientation
-        this.yaw = -90;   // facing -Z
-        this.pitch = 0;
+        this.yaw = -70;   // facing -Z
+        this.pitch = -20;
 
         this.sensitivity = 0.1;
 
@@ -106,28 +106,89 @@ export class Camera {
     }
 
     processMouseMovement(xoffset, yoffset) {
+        xoffset *= this.sensitivity;
+        yoffset *= this.sensitivity;
 
-      xoffset *= this.sensitivity;
-      yoffset *= this.sensitivity;
+        this.yaw   += xoffset;
+        this.pitch += yoffset;
 
-      this.yaw   += xoffset;
-      this.pitch += yoffset;
+        this.pitch = Math.max(-89, Math.min(89, this.pitch));
 
-      // Pitch clamp (boyun kırılmasın)
-      if (this.pitch > 89.0)  this.pitch = 89.0;
-      if (this.pitch < -89.0) this.pitch = -89.0;
+        this._updateVectors();
+    }
+}
 
-      // Yeni front vektörü
-      const radYaw   = this.yaw * Math.PI / 180;
-      const radPitch = this.pitch * Math.PI / 180;
+export class FPSCamera extends Camera {
+    constructor(fov = 60, aspect = 1, near = 0.1, far = 100) {
+        super(fov, aspect, near, far);
 
-      const front = vec3(
-          Math.cos(radYaw) * Math.cos(radPitch),
-          Math.sin(radPitch),
-          Math.sin(radYaw) * Math.cos(radPitch)
-      );
+        this.eyeHeight = 1.6;
+        this.position[1] = this.eyeHeight;
+        this.yaw = -90;
+        this.pitch = 0;
 
-      this.front = normalize(front);
+        this.speed = 0.1;     
+        this.sensitivity = 0.1;
+
+        this._updateVectors();
     }
 
+    // ===== FPS Forward =====
+    moveForward(dt = 1) {
+        const flatForward = normalize(vec3(
+            this.front[0],
+            0,
+            this.front[2]
+        ));
+
+        this.position = add(
+            this.position,
+            scale(this.speed * dt, flatForward)
+        );
+    }
+
+    moveBackward(dt = 1) {
+        const flatForward = normalize(vec3(
+            this.front[0],
+            0,
+            this.front[2]
+        ));
+
+        this.position = subtract(
+            this.position,
+            scale(this.speed * dt, flatForward)
+        );
+    }
+
+    moveRight(dt = 1) {
+        const flatRight = normalize(vec3(
+            this.right[0],
+            0,
+            this.right[2]
+        ));
+
+        this.position = add(
+            this.position,
+            scale(this.speed * dt, flatRight)
+        );
+    }
+
+    moveLeft(dt = 1) {
+        const flatRight = normalize(vec3(
+            this.right[0],
+            0,
+            this.right[2]
+        ));
+
+        this.position = subtract(
+            this.position,
+            scale(this.speed * dt, flatRight)
+        );
+    }
+
+    // ===== FPS update =====
+    update() {
+        // Y ekseni sabit
+        this.position[1] = this.eyeHeight;
+    }
 }

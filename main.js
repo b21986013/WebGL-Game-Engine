@@ -6,52 +6,19 @@ import { Texture } from "./core/Texture.js";
 import { Mesh } from "./core/Mesh.js";
 import { Material } from "./core/Material.js";
 import { vec3,  flatten } from "./mvNew.js";
-import { Camera } from "./camera/Camera.js";
+import { Camera, FPSCamera } from "./camera/Camera.js";
 import { Scene } from "./scene/Scene.js";
 import { loadOBJ } from "./loaders/OBJLoader.js";
+import { InputManager } from "./input/InputManager.js";
+import { SceneController } from "./input/SceneController.js";
+import { FPSController } from "./input/FPSController.js";
 import { loadShaderSource, createProgram } from "./initshaders.js";
 import { GameObject } from "./scene/GameObject.js";
 import { createCube } from "./geometry/Cube.js";
 
 // Global variables
-let gl, canvas, shaderProgram, scene, aspect, lightSettings; 
-const keys = {}; 
-
-function mouseEvents()
-{
-    const camera = scene.camera;
-
-    canvas.addEventListener("mousemove", (e) => 
-    {
-        if (document.pointerLockElement !== canvas) return;
-        
-        camera.processMouseMovement(e.movementX, -e.movementY);
-
-        const VLoc = camera.getUniformLocations(gl, shaderProgram).VLoc;
-        gl.uniformMatrix4fv(VLoc, false, flatten(camera.getViewMatrix()));
-    });
-
-    canvas.addEventListener("click", () => 
-    {
-        canvas.requestPointerLock();
-    });
-
-    document.addEventListener("pointerlockchange", () => 
-    {
-        if (document.pointerLockElement === canvas) 
-        {
-            console.log("Mouse locked");
-        } 
-        else 
-        {
-            console.log("Mouse released");
-        }
-    });
-
-
-    window.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
-    window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
-}
+let gl, canvas, shaderProgram, scene, aspect, lightSettings, fpsCamera, sceneController, fpsController, activeView, inputManager; 
+ 
 
 function handleResize(){
     window.addEventListener('resize', () => 
@@ -63,6 +30,30 @@ function handleResize(){
         scene.camera.updateAspect(aspect);
         const PLoc = scene.camera.getUniformLocations(gl, shaderProgram).PLoc;
         gl.uniformMatrix4fv(PLoc, false, flatten(scene.camera.getProjectionMatrix()));
+    });
+}
+
+function updateViewIndicator() {
+    const el = document.getElementById("view-indicator");
+
+    if (inputManager.activeController === sceneController) {
+        el.textContent = "FREE-VIEW is active (press SHIFT to activate FPS-VIEW)";
+        el.style.color = "#00ffcc";
+    } else {
+        el.textContent = "FPS-VIEW is active (press CTRL to activate FREE-VIEW)";
+        el.style.color = "#ffcc00";
+    }
+}
+
+function handleViewChange(){
+
+    inputManager = new InputManager();
+
+    inputManager.setActive(sceneController);
+
+    window.addEventListener("keydown", e => {
+        if (e.key === "Control") inputManager.setActive(sceneController);
+        if (e.key === "Shift")   inputManager.setActive(fpsController);
     });
 }
 
@@ -82,8 +73,6 @@ async function init() {
     // gl.cullFace(gl.BACK);
     // gl.frontFace(gl.CCW);
 
-    
-
     const vertexSource = await loadShaderSource("shaders/vertex.glsl");
     const fragmentSource = await loadShaderSource("shaders/fragment.glsl");
     
@@ -97,12 +86,22 @@ init().then(async() => {
     scene = new Scene();
 
     const camera = new Camera(45, aspect, 0.01, 50);
-    camera.position = vec3(0,3,10);
-    camera.init(gl, shaderProgram);
-    
+    camera.position = vec3(-5,10,17);
+ 
     scene.camera = camera;
 
-    mouseEvents();
+    sceneController = new SceneController(scene, canvas, gl, shaderProgram);
+
+    fpsCamera =  new FPSCamera(60, aspect, 0.01, 50);
+    fpsCamera.position = vec3(0, 1.6, 5); 
+    fpsCamera.yaw = -90;
+    fpsCamera.pitch = 0;
+    fpsCamera.fov = 60;
+
+    fpsController = new FPSController(fpsCamera, canvas, gl, shaderProgram);
+
+
+    handleViewChange();
     handleResize();
 
     demoSceneSetup().then(()=>
@@ -170,26 +169,38 @@ async function demoSceneSetup(){
 
 
 function render(){
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    function updateCamera() 
-    {
-        const camera = scene.camera;
-
-        if (keys['w']) camera.moveForward();
-        if (keys['s']) camera.moveBackward();
-        if (keys['a']) camera.moveLeft();
-        if (keys['d']) camera.moveRight();
-
-        const {VLoc, viewPosLoc} = camera.getUniformLocations(gl, shaderProgram);
-        gl.uniformMatrix4fv(VLoc, false, flatten(camera.getViewMatrix()));
-        gl.uniform3fv(viewPosLoc, flatten(camera.position));
-    }
-
-    updateCamera();  
+    const w = canvas.width;
+    const h = canvas.height;
 
     applyLightUniforms(gl, shaderProgram, lightSettings); // ./core/Renderer.js
 
+
+    gl.viewport(0, 0, w / 2, h);
+    gl.scissor(0, 0, w / 2, h);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+   
+    scene.camera.updateAspect((w / 2) / h);
+    scene.camera.init(gl, shaderProgram);
+
+    if(inputManager.activeController === sceneController)
+        sceneController.update();
+    scene.draw(gl, shaderProgram);
+
+
+     // ===== SAĞ: GAME / FPS VIEW =====
+    gl.viewport(w / 2, 0, w / 2, h);
+    gl.scissor(w / 2, 0, w / 2, h);
+    gl.clear(gl.DEPTH_BUFFER_BIT); 
+
+    fpsCamera.updateAspect((w / 2) / h);
+    fpsCamera.init(gl, shaderProgram);
+
+    updateViewIndicator();
+
+
+    if(inputManager.activeController === fpsController)
+        fpsController.update();
     scene.draw(gl, shaderProgram);
 
     requestAnimationFrame(render);
